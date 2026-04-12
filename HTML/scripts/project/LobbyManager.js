@@ -24,13 +24,13 @@ const CHARACTER_ICON_SIZE = 100;  // Slightly bigger for characters
 // Character list (matching characterPortraits animations and HeroData)
 const CHARACTERS = [
     { id: "archer", name: "Archer", animation: "archer", description: "Fast & fragile. +25% Speed", price: 0 },
-    { id: "cowboy", name: "Cowboy", animation: "cowboy", description: "Crit master. 3x Crit damage!", price: 500 },
-    { id: "vampire", name: "Vampire", animation: "vampire", description: "Lifesteal. +1 HP per hit", price: 1000 },
-    { id: "sniper", name: "Sniper", animation: "sniper", description: "High damage. +50% Damage", price: 1500 },
-    { id: "mage", name: "Mage", animation: "mage", description: "Fire mage. +10% Attack Speed", price: 2000 },
-    { id: "skeleton", name: "Skeleton", animation: "skeleton", description: "Undead. +15% XP Gain", price: 2500 },
-    { id: "paladin", name: "Paladin", animation: "paladin", description: "Tank. +50% Max Health", price: 2500 },
-    { id: "viking", name: "Viking", animation: "viking", description: "Brutal. +30% Weapon Damage", price: 3000 }
+    { id: "cowboy", name: "Cowboy", animation: "cowboy", description: "Crit master. 3x Crit damage!", price: 0 },
+    { id: "mage", name: "Mage", animation: "mage", description: "Fire mage. +10% Attack Speed", price: 0 },
+    { id: "sniper", name: "Sniper", animation: "sniper", description: "High damage. +50% Damage", price: 300 },
+    { id: "vampire", name: "Vampire", animation: "vampire", description: "Lifesteal. +1 HP per hit", price: 500 },
+    { id: "skeleton", name: "Skeleton", animation: "skeleton", description: "Undead. +15% XP Gain", price: 400 },
+    { id: "paladin", name: "Paladin", animation: "paladin", description: "Tank. +50% Max Health", price: 700 },
+    { id: "viking", name: "Viking", animation: "viking", description: "Brutal. +30% Weapon Damage", price: 600 }
 ];
 
 // Track currently previewed character (may be locked)

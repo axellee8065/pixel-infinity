@@ -48,19 +48,20 @@ export function setupInputHandlers() {
     console.log("[InputManager] Input handlers setup complete!");
 }
 
+// Debug mode flag - set to true only for development
+const DEBUG_MODE = false;
+
 // Handle keydown events (one-time key presses)
 function onKeyDown(e) {
+    if (!DEBUG_MODE) return;  // Debug keys disabled in production
+
     const runtime = getRuntime();
 
     // U key - test victory (instant win)
     if (e.key === "u" || e.key === "U") {
         console.log("[InputManager] U pressed - triggering test victory!");
         state.isPaused = true;
-
-        // Add 200 gold reward for victory
         SaveManager.addGold(200);
-        console.log("[InputManager] Victory! Added 200 gold to player.");
-
         runtime.callFunction("victory");
     }
 

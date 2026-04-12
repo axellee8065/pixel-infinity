@@ -71,10 +71,11 @@ function getEnemyHPMultiplier() {
 }
 
 // Calculate enemy damage scaling (level 4+: +25% damage per level)
+// Uses max(time, level) instead of multiply to prevent death-wall
 function getEnemyDamageMultiplier() {
     if (state.playerLevel < 4) return state.difficultyMultiplier;
     const levelBonus = 1.0 + ((state.playerLevel - 3) * 0.25);  // +25% per level after 3
-    return state.difficultyMultiplier * levelBonus;
+    return Math.max(state.difficultyMultiplier, levelBonus);  // max instead of multiply
 }
 
 // Calculate enemy speed scaling (level 4+: +10% speed per level)

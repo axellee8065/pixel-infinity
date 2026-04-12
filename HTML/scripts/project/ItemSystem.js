@@ -510,6 +510,8 @@ export function onChestOpened() {
     const count = getItemCount("hoarders_charm");
     const bonus = count * 2.5;  // +2.5% per item per chest
     state.itemStats.chestDamageBonus += bonus;
+    // Cap at 50% max bonus
+    state.itemStats.chestDamageBonus = Math.min(state.itemStats.chestDamageBonus, 50);
     console.log("[ItemSystem] Hoarder's Charm: +" + bonus + "% damage (total: " + state.itemStats.chestDamageBonus + "%)");
 }
 
@@ -520,6 +522,8 @@ export function onEnemyKilled() {
     const count = getItemCount("reapers_contract");
     const bonus = count * 0.1;  // +0.1% per item per kill
     state.itemStats.killDamageBonus += bonus;
+    // Cap at 100% max bonus
+    state.itemStats.killDamageBonus = Math.min(state.itemStats.killDamageBonus, 100);
     // Keep damage bonus as whole numbers for display
     state.itemStats.killDamageBonus = Math.round(state.itemStats.killDamageBonus * 10) / 10;
 }

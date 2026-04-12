@@ -9,6 +9,17 @@ Construct 3 + JavaScript ES6 모듈 기반 로그라이트 액션 게임.
 
 ## Agent Roles
 
+### 0. Play Review Agent (플레이 리뷰 에이전트)
+- **역할**: 게임성 분석, 밸런스 검증, 보완 방안 도출
+- **산출물**: `PLAY_REVIEW.md`
+- **구성**: 4명의 전문 서브 에이전트
+  - **Combat & Balance Reviewer** — 무기/히어로/데미지 공식/아이템/토메/크릿/상태이상 밸런스
+  - **Enemy & Difficulty Reviewer** — 적 AI/스폰/보스/난이도 곡선/XP 커브/데스월 검증
+  - **Economy & Progression Reviewer** — 골드/실버 경제/상자/메타 진행/세이브/해금 페이싱
+  - **UX & Game Feel Reviewer** — 입력/시각 피드백/UI/모바일/온보딩/게임 주스
+- **실행 방법**: 4 에이전트 병렬 실행 → 종합 리포트 생성
+- **참고 문서**: `PLAY_REVIEW.md` (39개 이슈, 5단계 로드맵)
+
 ### 1. Game Architect (게임 아키텍트)
 - **역할**: 전체 게임 구조 설계 및 시스템 간 의존성 관리
 - **담당 파일**: `GameConfig.js`, `GameState.js`, `main.js`, `data.json`

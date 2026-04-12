@@ -11,6 +11,13 @@ import * as HeroData from "./HeroData.js";
 // Nearby damage range (same as swift_blade melee range)
 const NEARBY_RANGE = 150;
 
+// Balance caps
+const MAX_PERCENT_BONUS = 500;       // Max +500% total damage bonus
+const MAX_CRIT_CHANCE = 80;          // Max 80% crit chance
+const MAX_CRIT_MULTIPLIER = 5.0;     // Max 5x crit damage
+const ULTRA_CRIT_MULTIPLIER = 10;    // Ultra crit: 10x (was 20x)
+const MAX_DODGE_CHANCE = 75;         // Max 75% dodge chance
+
 // ============================================
 // MAIN DAMAGE CALCULATION
 // ============================================
@@ -110,6 +117,9 @@ export function calculateDamage(baseDamage, target, options = {}) {
         percentBonus += berserkerBonus;
     }
 
+    // Cap percentage bonus to prevent infinite scaling
+    percentBonus = Math.min(percentBonus, MAX_PERCENT_BONUS);
+
     // Apply percentage bonus
     const hadBonus = percentBonus > 0;
     damage *= (1 + percentBonus / 100);
@@ -118,26 +128,28 @@ export function calculateDamage(baseDamage, target, options = {}) {
     // STEP 3: Critical hit check
     // ============================================
 
-    // Total crit chance (hero base + items + tome)
+    // Total crit chance (hero base + items + tome) - capped
     const heroCritChance = state.playerCritChance || 0;
-    const totalCritChance = heroCritChance + (stats.critChance || 0) + TomeSystem.getCritChanceBonus();
+    const totalCritChance = Math.min(
+        heroCritChance + (stats.critChance || 0) + TomeSystem.getCritChanceBonus(),
+        MAX_CRIT_CHANCE
+    );
 
     // Hero's crit multiplier (e.g., Cowboy has 3x instead of 2x)
     const heroCritMult = state.playerCritMultiplier || 2.0;
 
     // Check for Ultra Crit first (Cataclysm Core)
     if (stats.ultraCritChance > 0 && Math.random() * 100 < stats.ultraCritChance) {
-        damage *= 20;  // 20x damage!
+        damage *= ULTRA_CRIT_MULTIPLIER;
         isUltraCrit = true;
         isCrit = true;
         damageColor = [1, 0, 1];  // Purple for ultra crit
-        console.log("[DamageCalculator] ULTRA CRIT! 20x damage!");
     }
     // Normal crit check (hero + items + Crit Tome)
     else if (totalCritChance > 0 && Math.random() * 100 < totalCritChance) {
-        // Use hero's crit multiplier, then add item bonus
+        // Use hero's crit multiplier, then add item bonus - capped
         const itemCritBonus = (stats.critMultiplier || 0) - 2.0;  // Item bonus above default 2x
-        const finalCritMult = heroCritMult + Math.max(0, itemCritBonus);
+        const finalCritMult = Math.min(heroCritMult + Math.max(0, itemCritBonus), MAX_CRIT_MULTIPLIER);
         damage *= finalCritMult;
         isCrit = true;
         damageColor = [1, 1, 0];  // Yellow for crit
@@ -337,7 +349,7 @@ export function checkDodge() {
     // Total dodge chance (items + Evasion Tome)
     const itemDodge = state.itemStats?.dodgeChance || 0;
     const tomeDodge = TomeSystem.getDodgeChanceBonus();
-    const totalDodge = itemDodge + tomeDodge;
+    const totalDodge = Math.min(itemDodge + tomeDodge, MAX_DODGE_CHANCE);
 
     if (totalDodge <= 0) return false;
 

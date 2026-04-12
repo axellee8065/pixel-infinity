@@ -32,8 +32,8 @@ export const ENEMY5_BASE_DAMAGE = 8;
 export const ENEMY5_XP_VALUE = 40;  // More XP for late-game leveling
 export const ENEMY5_SPAWN_CHANCE = 0.10;  // 10% chance when eligible
 
-// Enemy2 (Goblin Warrior) - Stronger, spawns at level 12+
-export const ENEMY2_MIN_LEVEL = 12;  // Start spawning at player level 12
+// Enemy2 (Goblin Warrior) - Stronger, spawns at level 7+
+export const ENEMY2_MIN_LEVEL = 7;  // Start spawning at player level 7 (was 12)
 export const ENEMY2_BASE_HEALTH = 25;  // Stronger than Enemy but manageable
 export const ENEMY2_BASE_SPEED = 100;
 export const ENEMY2_SPEED_VARIANCE = 30;
@@ -54,8 +54,8 @@ export const ENEMY4_ATTACK_COOLDOWN = 2.5;  // Seconds between attacks
 export const ENEMY4_PROJECTILE_SPEED = 500;  // Fast arrow
 export const ENEMY4_HOMING_STRENGTH = 4.0;  // How strongly arrow tracks player
 
-// Enemy3 (Bat) - Very fast swarm enemy, low damage, spawns at level 14+
-export const ENEMY3_MIN_LEVEL = 14;  // Start spawning at player level 14
+// Enemy3 (Bat) - Very fast swarm enemy, low damage, spawns at level 6+
+export const ENEMY3_MIN_LEVEL = 6;  // Start spawning at player level 6 (was 14)
 export const ENEMY3_MIN_TIME = 0;   // No time requirement
 export const ENEMY3_BASE_HEALTH = 20;  // Weakest, but hard to hit
 export const ENEMY3_BASE_SPEED = 200;  // Fast but manageable
