@@ -36,7 +36,16 @@ const defaultSaveData = {
     lastRunStats: null,
 
     // === TUTORIAL ===
-    tutorialShown: false
+    tutorialShown: false,
+
+    // === DAILY REWARDS ===
+    lastDailyClaimDate: null,  // "YYYY-MM-DD"
+    dailyStreak: 0,            // Consecutive days claimed
+
+    // === WEEKLY CHALLENGES ===
+    weeklyResetDate: null,     // "YYYY-MM-DD" (Monday)
+    weeklyChallenges: [],      // [{id, target, progress, completed}]
+    weeklyRewardClaimed: false
 };
 
 // Current save data in memory
@@ -322,6 +331,121 @@ export function saveLastRunStats(stats) {
 
 export function getLastRunStats() {
     return getSaveData().lastRunStats;
+}
+
+// === DAILY REWARDS ===
+
+const DAILY_REWARDS = [
+    { day: 1, gold: 50,  item: null },
+    { day: 2, gold: 75,  item: "common" },
+    { day: 3, gold: 100, item: null },
+    { day: 4, gold: 125, item: "uncommon" },
+    { day: 5, gold: 150, item: null },
+    { day: 6, gold: 200, item: "rare" },
+    { day: 7, gold: 500, item: "hero_ticket" }
+];
+
+export function getDailyRewards() { return DAILY_REWARDS; }
+
+export function canClaimDaily() {
+    const today = new Date().toISOString().split('T')[0];
+    return getSaveData().lastDailyClaimDate !== today;
+}
+
+export function claimDailyReward() {
+    if (!canClaimDaily()) return null;
+
+    const today = new Date().toISOString().split('T')[0];
+    const data = getSaveData();
+
+    // Check streak
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (data.lastDailyClaimDate === yesterday) {
+        data.dailyStreak = Math.min((data.dailyStreak || 0) + 1, 6);
+    } else {
+        data.dailyStreak = 0;
+    }
+    data.lastDailyClaimDate = today;
+
+    const reward = DAILY_REWARDS[data.dailyStreak];
+    data.gold += reward.gold;
+    saveGame();
+
+    console.log("[SaveManager] Daily reward claimed! Day", data.dailyStreak + 1, "Gold:", reward.gold);
+    return reward;
+}
+
+export function getDailyStreak() {
+    return getSaveData().dailyStreak || 0;
+}
+
+// === WEEKLY CHALLENGES ===
+
+const WEEKLY_CHALLENGE_POOL = [
+    { id: "kills_100",    name: "Centurion",      desc: "Kill 100 enemies in one run",  target: 100, type: "kills" },
+    { id: "speed_4min",   name: "Speed Runner",   desc: "Beat boss in under 4 minutes", target: 240, type: "time_under" },
+    { id: "crits_50",     name: "Crit Master",    desc: "Land 50 critical hits",        target: 50,  type: "crits" },
+    { id: "chests_5",     name: "Treasure Hunter", desc: "Open 5 chests in one run",    target: 5,   type: "chests" },
+    { id: "survive_5min", name: "Endurance",       desc: "Survive for 5 minutes",        target: 300, type: "time" },
+    { id: "gold_150",     name: "Gold Rush",       desc: "Earn 150+ gold in one run",    target: 150, type: "gold" },
+    { id: "no_tome",      name: "Pure Fighter",    desc: "Beat boss without any tomes",  target: 1,   type: "no_tome" }
+];
+
+export function getWeeklyChallenges() {
+    const data = getSaveData();
+    const monday = getMonday();
+
+    // Reset if new week
+    if (data.weeklyResetDate !== monday) {
+        // Pick 3 random challenges
+        const shuffled = [...WEEKLY_CHALLENGE_POOL].sort(() => Math.random() - 0.5);
+        data.weeklyChallenges = shuffled.slice(0, 3).map(c => ({
+            ...c, progress: 0, completed: false
+        }));
+        data.weeklyResetDate = monday;
+        data.weeklyRewardClaimed = false;
+        saveGame();
+    }
+
+    return data.weeklyChallenges || [];
+}
+
+export function updateWeeklyProgress(type, value) {
+    const challenges = getWeeklyChallenges();
+    for (const c of challenges) {
+        if (c.completed) continue;
+        if (c.type === type) {
+            c.progress = Math.max(c.progress, value);
+            if (c.progress >= c.target) {
+                c.completed = true;
+                console.log("[SaveManager] Weekly challenge completed:", c.name);
+            }
+        }
+    }
+    saveGame();
+}
+
+export function getWeeklyCompletedCount() {
+    return getWeeklyChallenges().filter(c => c.completed).length;
+}
+
+export function claimWeeklyReward() {
+    const data = getSaveData();
+    if (data.weeklyRewardClaimed) return null;
+    if (getWeeklyCompletedCount() < 2) return null;  // Need 2/3
+
+    data.weeklyRewardClaimed = true;
+    data.gold += 300;
+    saveGame();
+    console.log("[SaveManager] Weekly reward claimed! +300 gold");
+    return { gold: 300 };
+}
+
+function getMonday() {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff)).toISOString().split('T')[0];
 }
 
 // === TUTORIAL ===

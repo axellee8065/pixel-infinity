@@ -1005,23 +1005,118 @@ export function killEnemy(enemy) {
     // Trigger Regen Tome (heal on kill)
     TomeSystem.onEnemyKilled();
 
-    // Hit-stop: brief frame freeze for impact feel
-    triggerHitStop();
+    // Kill combo
+    addCombo();
+
+    // Hit-stop: enhanced by combo tier
+    if (comboCount >= 30) {
+        triggerHitStop("multi");
+    } else {
+        triggerHitStop("normal");
+    }
 
     // Destroy enemy
     enemy.destroy();
 }
 
-// Hit-stop system - brief time scale reduction for impact
-let hitStopTimer = 0;
-const HIT_STOP_DURATION = 0.032;  // ~2 frames at 60fps
+// ============================================
+// KILL COMBO SYSTEM
+// ============================================
+let comboCount = 0;
+let comboTimer = 0;
+const COMBO_TIMEOUT = 2.0;  // 2 seconds to maintain combo
 
-function triggerHitStop() {
-    hitStopTimer = HIT_STOP_DURATION;
+const COMBO_TIERS = [
+    { threshold: 5,   label: "NICE!",        xpMult: 1.2, color: [1, 1, 0.5] },
+    { threshold: 15,  label: "GREAT!",       xpMult: 1.5, color: [1, 0.8, 0] },
+    { threshold: 30,  label: "AMAZING!",     xpMult: 2.0, color: [1, 0.5, 0] },
+    { threshold: 50,  label: "UNSTOPPABLE!", xpMult: 2.5, color: [1, 0.2, 0] },
+    { threshold: 100, label: "GODLIKE!!!",   xpMult: 3.0, color: [1, 0, 0.5] }
+];
+
+function addCombo() {
+    comboCount++;
+    comboTimer = COMBO_TIMEOUT;
+
+    // Check tier transitions
+    for (let i = COMBO_TIERS.length - 1; i >= 0; i--) {
+        const tier = COMBO_TIERS[i];
+        if (comboCount === tier.threshold) {
+            showComboText(tier.label, tier.color);
+            // Camera shake on tier transition
+            const DamageEffects = globalThis.DamageEffects;
+            if (DamageEffects) DamageEffects.triggerDamageEffect(tier.threshold / 5);
+            break;
+        }
+    }
+}
+
+function showComboText(label, color) {
+    const runtime = getRuntime();
+    const playerPos = PlayerController.getPlayerPosition();
+    const text = runtime.objects.DamageText?.createInstance("Game", playerPos.x, playerPos.y - 200);
+    if (!text) return;
+    text.text = label + " x" + comboCount;
+    text.colorRgb = color;
+    text.opacity = 1;
+    try {
+        text.behaviors.Tween.startTween("y", playerPos.y - 350, 1.5, "easeoutquad");
+        text.behaviors.Tween.startTween("opacity", 0, 1.5, "easeoutquad");
+    } catch (e) {}
+    setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 1600);
+}
+
+export function getComboXPMultiplier() {
+    for (let i = COMBO_TIERS.length - 1; i >= 0; i--) {
+        if (comboCount >= COMBO_TIERS[i].threshold) return COMBO_TIERS[i].xpMult;
+    }
+    return 1.0;
+}
+
+export function getComboCount() { return comboCount; }
+
+export function updateCombo(dt) {
+    if (comboTimer > 0) {
+        comboTimer -= dt;
+        if (comboTimer <= 0 && comboCount > 0) {
+            if (comboCount >= 5) {
+                showComboText("COMBO BROKEN", [0.5, 0.5, 0.5]);
+            }
+            comboCount = 0;
+        }
+    }
+}
+
+export function resetCombo() { comboCount = 0; comboTimer = 0; }
+
+// ============================================
+// HIT-STOP SYSTEM (enhanced with crit/multi-kill)
+// ============================================
+let hitStopTimer = 0;
+let hitStopScale = 0.1;
+
+export function triggerHitStop(type = "normal") {
+    switch (type) {
+        case "crit":
+            hitStopTimer = 0.050;  // 50ms for crit kills
+            hitStopScale = 0.05;
+            break;
+        case "ultra_crit":
+            hitStopTimer = 0.150;  // 150ms for ultra crit
+            hitStopScale = 0.02;
+            break;
+        case "multi":
+            hitStopTimer = 0.100;  // 100ms slowmo for multi-kills
+            hitStopScale = 0.3;
+            break;
+        default:
+            hitStopTimer = 0.025;  // 25ms normal kill
+            hitStopScale = 0.1;
+    }
 }
 
 export function getHitStopScale() {
-    if (hitStopTimer > 0) return 0.1;  // 10% speed during hit-stop
+    if (hitStopTimer > 0) return hitStopScale;
     return 1.0;
 }
 

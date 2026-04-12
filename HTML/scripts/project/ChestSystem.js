@@ -322,6 +322,18 @@ function claimItem() {
     console.log("[ChestSystem] Claiming item:", finalItemId);
     ItemSystem.addItem(finalItemId);
     SilverSystem.onChestOpened();  // Increase cost for next chest
+
+    // Show rarity drop effect
+    const itemData = ItemSystem.getItemData(finalItemId);
+    if (itemData) {
+        const DamageEffects = globalThis.DamageEffects;
+        const PlayerController = globalThis.PlayerController;
+        if (DamageEffects && PlayerController) {
+            const pos = PlayerController.getPlayerPosition();
+            DamageEffects.showRarityDropEffect(pos.x, pos.y, itemData.rarity, itemData.name);
+        }
+    }
+
     closeChestWindow();
 }
 

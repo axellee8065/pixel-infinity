@@ -432,11 +432,15 @@ export function applyDamageToEnemy(target, baseDamage, options = {}) {
         }
     }
 
-    // Show text effects for crit/ultra crit
+    // Show text effects for crit/ultra crit + enhanced hit-stop
     if (result.isUltraCrit) {
         DamageEffects.showTextEffect(target.x, target.y, "ultra_crit");
+        const EM = globalThis.EnemyManager;
+        if (EM) EM.triggerHitStop("ultra_crit");
     } else if (result.isCrit) {
         DamageEffects.showTextEffect(target.x, target.y, "crit");
+        const EM = globalThis.EnemyManager;
+        if (EM) EM.triggerHitStop("crit");
     }
 
     // Check crit heal

@@ -82,19 +82,7 @@ export function init(runtimeInstance) {
 
 // Handle keyboard input in lobby (called every tick)
 export function handleLobbyKeyboard() {
-    if (!runtime || !runtime.keyboard) return;
-
-    // G key - Add 1000 gold (dev feature)
-    if (runtime.keyboard.isKeyDown("KeyG")) {
-        if (!gKeyPressed) {
-            gKeyPressed = true;
-            SaveManager.addGold(1000);
-            updateLobbyUI();
-            console.log("[LobbyManager] Added 1000 gold! Total:", SaveManager.getGold());
-        }
-    } else {
-        gKeyPressed = false;
-    }
+    // Debug keys removed for production
 }
 
 // Apply saved hero selection to Player sprite

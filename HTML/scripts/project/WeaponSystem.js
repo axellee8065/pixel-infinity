@@ -2040,6 +2040,13 @@ export function acquireWeapon(weaponId) {
             if (!state.evolvedWeapons) state.evolvedWeapons = {};
             state.evolvedWeapons[weaponId] = evo;
             console.log("[WeaponSystem] WEAPON EVOLVED:", weaponId, "->", evo.evolvedName);
+
+            // Trigger evolution ceremony effect
+            const DamageEffects = globalThis.DamageEffects;
+            const playerPos = globalThis.PlayerController?.getPlayerPosition();
+            if (DamageEffects && playerPos) {
+                DamageEffects.showEvolutionCeremony(playerPos.x, playerPos.y, evo.evolvedName);
+            }
         }
     }
 

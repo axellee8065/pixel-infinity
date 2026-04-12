@@ -179,4 +179,99 @@ export function clearAllTextEffects() {
     console.log("[DamageEffects] Cleared all text effects");
 }
 
+// ============================================
+// RARITY DROP EFFECTS
+// ============================================
+
+export function showRarityDropEffect(x, y, rarity, itemName) {
+    const runtime = getRuntime();
+
+    if (rarity === "legendary") {
+        // Legendary: camera shake + large gold text + slowmo
+        startCameraShake(20, 0.4);
+        const text = runtime.objects.DamageText?.createInstance("Game", x, y - 50);
+        if (text) {
+            text.text = "LEGENDARY!\n" + itemName;
+            text.colorRgb = [1, 0.84, 0];
+            text.opacity = 1;
+            try {
+                text.behaviors.Tween.startTween("y", y - 250, 2.0, "easeoutquad");
+                text.behaviors.Tween.startTween("opacity", 0, 2.0, "easeoutquad");
+            } catch (e) {}
+            setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 2100);
+        }
+        // Trigger slowmo
+        const EM = globalThis.EnemyManager;
+        if (EM) EM.triggerHitStop("ultra_crit");
+    } else if (rarity === "epic") {
+        startCameraShake(12, 0.25);
+        const text = runtime.objects.DamageText?.createInstance("Game", x, y - 50);
+        if (text) {
+            text.text = "EPIC!\n" + itemName;
+            text.colorRgb = [0.6, 0.2, 1];
+            text.opacity = 1;
+            try {
+                text.behaviors.Tween.startTween("y", y - 200, 1.5, "easeoutquad");
+                text.behaviors.Tween.startTween("opacity", 0, 1.5, "easeoutquad");
+            } catch (e) {}
+            setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 1600);
+        }
+    } else if (rarity === "rare") {
+        const text = runtime.objects.DamageText?.createInstance("Game", x, y - 40);
+        if (text) {
+            text.text = itemName;
+            text.colorRgb = [0.2, 0.5, 1];
+            text.opacity = 1;
+            try {
+                text.behaviors.Tween.startTween("y", y - 150, 1.2, "easeoutquad");
+                text.behaviors.Tween.startTween("opacity", 0, 1.2, "easeoutquad");
+            } catch (e) {}
+            setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 1300);
+        }
+    }
+}
+
+// ============================================
+// WEAPON EVOLUTION CEREMONY
+// ============================================
+
+export function showEvolutionCeremony(x, y, evolvedName) {
+    const runtime = getRuntime();
+
+    // Big camera shake
+    startCameraShake(25, 0.5);
+
+    // Slowmo
+    const EM = globalThis.EnemyManager;
+    if (EM) EM.triggerHitStop("ultra_crit");
+
+    // "EVOLVED!" text
+    const label = runtime.objects.DamageText?.createInstance("Game", x, y - 100);
+    if (label) {
+        label.text = "WEAPON EVOLVED!";
+        label.colorRgb = [1, 1, 1];
+        label.opacity = 1;
+        try {
+            label.behaviors.Tween.startTween("y", y - 250, 2.0, "easeoutquad");
+            label.behaviors.Tween.startTween("opacity", 0, 2.5, "easeoutquad");
+        } catch (e) {}
+        setTimeout(() => { try { if (label?.runtime) label.destroy(); } catch (e) {} }, 2600);
+    }
+
+    // Evolved weapon name (delayed)
+    setTimeout(() => {
+        const nameText = runtime.objects.DamageText?.createInstance("Game", x, y - 60);
+        if (nameText) {
+            nameText.text = evolvedName;
+            nameText.colorRgb = [1, 0.84, 0];
+            nameText.opacity = 1;
+            try {
+                nameText.behaviors.Tween.startTween("y", y - 200, 2.0, "easeoutquad");
+                nameText.behaviors.Tween.startTween("opacity", 0, 2.0, "easeoutquad");
+            } catch (e) {}
+            setTimeout(() => { try { if (nameText?.runtime) nameText.destroy(); } catch (e) {} }, 2100);
+        }
+    }, 300);
+}
+
 console.log("[DamageEffects] Module loaded!");

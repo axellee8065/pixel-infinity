@@ -196,7 +196,7 @@ export const ITEMS = {
     cataclysm_core: {
         id: "cataclysm_core",
         name: "Cataclysm Core",
-        description: "2% chance for 20x damage (Ultra Crit)",
+        description: "2% chance for 10x damage (Ultra Crit)",
         effect: "ultraCritChance",
         value: 2,  // 2% chance per stack
         rarity: "legendary"
@@ -278,7 +278,7 @@ export function initItemInventory() {
         killDamageBonus: 0,      // Reaper's Contract (+0.1% per kill)
 
         // Ultra crit
-        ultraCritChance: 0,      // Cataclysm Core (2% for 20x)
+        ultraCritChance: 0,      // Cataclysm Core (2% for 10x)
 
         // Poison
         poisonChance: 0,         // Serpent's Fang

@@ -725,6 +725,7 @@ function Tick(runtime) {
 
     // Apply hit-stop time scaling for impact feel
     EnemyManager.updateHitStop(dt);
+    EnemyManager.updateCombo(dt);
     const hitScale = EnemyManager.getHitStopScale();
     const scaledDt = dt * hitScale;
 
