@@ -24,6 +24,12 @@ let warningStarted = false;
 let bossDefeated = false;  // Once true, no more bosses spawn
 let restPeriodTimer = 0;   // Pause enemy spawning after boss death
 
+// Endless mode
+let endlessMode = false;
+let endlessWave = 0;
+let bossesDefeated = 0;      // Total bosses killed this run
+let nextBossLevel = 0;       // Next level for boss spawn in endless
+
 // Boss HP bar UI references
 let bossHPBarBg = null;
 let bossHPBarFill = null;
@@ -38,13 +44,22 @@ export function checkBossSpawn(dt) {
         restPeriodTimer -= dt;
     }
 
-    // Don't spawn if boss already defeated (only one boss per run)
-    if (bossDefeated) return;
+    // Don't spawn if boss already defeated (unless endless mode)
+    if (bossDefeated && !endlessMode) return;
 
     // Don't spawn if boss already active
     if (bossActive) return;
 
-    // Check if it's boss time (level-based)
+    // Endless mode: spawn boss at nextBossLevel
+    if (endlessMode && !bossWarningShown && state.playerLevel >= nextBossLevel) {
+        showBossWarning();
+        bossWarningShown = true;
+        warningStarted = true;
+        warningElapsed = 0;
+        return;
+    }
+
+    // First boss: level-based
     if (state.playerLevel >= Config.BOSS_SPAWN_LEVEL && !bossWarningShown) {
         showBossWarning();
         bossWarningShown = true;
@@ -146,13 +161,18 @@ function spawnBoss() {
         const boss = runtime.objects.Boss1?.createInstance("Game", spawnX, spawnY, true);
 
         if (boss) {
-            // Boss health based on equipped item count
+            // Boss health based on equipped item count + endless wave scaling
             const itemCount = Object.keys(state.itemInventory || {}).length;
             let bossHealth = 4000;  // Default
             if (itemCount === 2) {
                 bossHealth = 5000;
             } else if (itemCount > 2) {
                 bossHealth = 6000;
+            }
+            // Endless mode: each wave increases HP by 50%
+            if (endlessMode && bossesDefeated > 0) {
+                bossHealth = Math.floor(bossHealth * Math.pow(1.5, bossesDefeated));
+                console.log("[BossManager] Endless Boss wave", endlessWave, "HP scaled:", bossHealth);
             }
             boss.instVars.health = bossHealth;
             boss.instVars.maxHealth = boss.instVars.health;
@@ -499,29 +519,114 @@ function killBoss(boss) {
 
     console.log("[BossManager] Boss defeated! Magnet activated. Spawned", gemCount, "gems and", goldCount, "gold!");
 
-    // Victory - stop game and call victory function
-    state.isPaused = true;
-
-    // Add 200 gold reward for victory
+    bossesDefeated++;
     SaveManager.addGold(200);
-
-    // Save run stats and check achievements
-    SaveManager.saveLastRunStats({
-        kills: state.killCount,
-        level: state.playerLevel,
-        time: Math.floor(state.gameTime),
-        goldEarned: (state.goldTextValue || 0) + 200,
-        bossDefeated: true,
-        heroId: state.selectedHeroId
-    });
-    SaveManager.addKills(state.killCount);
-    SaveManager.addPlayTime(Math.floor(state.gameTime));
-    SaveManager.updateHighScore(state.killCount);
     SaveManager.unlockAchievement("boss_kill");
 
-    console.log("[BossManager] Victory! Added 200 gold to player.");
+    // If already in endless mode, just continue
+    if (endlessMode) {
+        endlessWave++;
+        nextBossLevel = state.playerLevel + 5;  // Next boss in 5 levels
+        bossDefeated = false;  // Allow next boss
+        bossWarningShown = false;
+        console.log("[BossManager] Endless Wave", endlessWave, "complete! Next boss at level", nextBossLevel);
+        return;
+    }
 
-    runtime.callFunction("victory");
+    // First boss kill — show endless mode choice
+    state.isPaused = true;
+
+    const i18n = globalThis.i18n;
+    const continueText = i18n ? i18n.t("endless_continue") : "Continue to Endless?";
+    const yesText = i18n ? i18n.t("endless_yes") : "Continue";
+    const noText = i18n ? i18n.t("endless_no") : "Exit";
+
+    // Create choice UI
+    const choiceText = runtime.objects.DamageText?.createInstance("Game",
+        state.playerX || runtime.layout.scrollX,
+        (state.playerY || runtime.layout.scrollY) - 200
+    );
+    if (choiceText) {
+        choiceText.text = `${continueText}\n\n[${yesText}]          [${noText}]`;
+        choiceText.colorRgb = [1, 0.84, 0];
+        choiceText.opacity = 1;
+    }
+
+    // Handle choice via click position
+    const choiceHandler = (e) => {
+        const layer = runtime.layout.getLayer("Game");
+        if (!layer) return;
+        const [mx] = layer.cssPxToLayer(e.clientX, e.clientY);
+        const centerX = state.playerX || runtime.layout.scrollX;
+
+        if (choiceText?.runtime) choiceText.destroy();
+        runtime.removeEventListener("pointerdown", choiceHandler);
+        document.removeEventListener("keydown", keyHandler);
+
+        if (mx < centerX) {
+            // Left = Continue (Endless)
+            endlessMode = true;
+            endlessWave = 1;
+            nextBossLevel = state.playerLevel + 5;
+            bossDefeated = false;
+            bossWarningShown = false;
+            state.isPaused = false;
+            console.log("[BossManager] ENDLESS MODE ACTIVATED! Wave 1, next boss at level", nextBossLevel);
+        } else {
+            // Right = Exit (Victory)
+            SaveManager.saveLastRunStats({
+                kills: state.killCount, level: state.playerLevel,
+                time: Math.floor(state.gameTime),
+                goldEarned: (state.goldTextValue || 0) + 200,
+                bossDefeated: true, heroId: state.selectedHeroId
+            });
+            SaveManager.addKills(state.killCount);
+            SaveManager.addPlayTime(Math.floor(state.gameTime));
+            SaveManager.updateHighScore(state.killCount);
+            // Show run result
+            const MetaUI = globalThis.MetaUI;
+            if (MetaUI) MetaUI.showRunResult({
+                kills: state.killCount, level: state.playerLevel,
+                time: Math.floor(state.gameTime),
+                goldEarned: (state.goldTextValue || 0) + 200,
+                bossDefeated: true
+            });
+            runtime.callFunction("victory");
+        }
+    };
+
+    // Keyboard shortcut: Y=continue, N=exit
+    const keyHandler = (e) => {
+        if (e.key === "y" || e.key === "Y" || e.key === "Enter") {
+            if (choiceText?.runtime) choiceText.destroy();
+            runtime.removeEventListener("pointerdown", choiceHandler);
+            document.removeEventListener("keydown", keyHandler);
+            endlessMode = true;
+            endlessWave = 1;
+            nextBossLevel = state.playerLevel + 5;
+            bossDefeated = false;
+            bossWarningShown = false;
+            state.isPaused = false;
+        } else if (e.key === "n" || e.key === "N" || e.key === "Escape") {
+            if (choiceText?.runtime) choiceText.destroy();
+            runtime.removeEventListener("pointerdown", choiceHandler);
+            document.removeEventListener("keydown", keyHandler);
+            SaveManager.saveLastRunStats({
+                kills: state.killCount, level: state.playerLevel,
+                time: Math.floor(state.gameTime),
+                goldEarned: (state.goldTextValue || 0) + 200,
+                bossDefeated: true, heroId: state.selectedHeroId
+            });
+            SaveManager.addKills(state.killCount);
+            SaveManager.addPlayTime(Math.floor(state.gameTime));
+            runtime.callFunction("victory");
+        }
+    };
+
+    runtime.addEventListener("pointerdown", choiceHandler);
+    document.addEventListener("keydown", keyHandler);
+
+    console.log("[BossManager] Boss defeated! Showing endless mode choice.");
 }
 
 // Check if entity is a boss
@@ -679,6 +784,10 @@ export function reset() {
     warningStarted = false;
     bossDefeated = false;
     restPeriodTimer = 0;
+    endlessMode = false;
+    endlessWave = 0;
+    bossesDefeated = 0;
+    nextBossLevel = 0;
 
     // Reset HP bar references
     bossHPBarBg = null;

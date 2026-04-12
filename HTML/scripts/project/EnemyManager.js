@@ -388,7 +388,6 @@ export function updateEnemies(dt) {
             // === Enemy6 (Brute): Charge when close ===
             if (enemy.objectType?.name === "Enemy6") {
                 if (dist < 300) {
-                    // Charge! 2x speed when close
                     enemy.x += moveX * speed * 2.0 * dt;
                     enemy.y += moveY * speed * 2.0 * dt;
                 } else {
@@ -396,7 +395,42 @@ export function updateEnemies(dt) {
                     enemy.y += moveY * speed * dt;
                 }
             }
-            // === Enemy8 (Tank): Slow but pulls nearby enemies forward ===
+            // === Enemy8 (Tank): Buff aura — nearby enemies get +30% speed ===
+            else if (enemy.objectType?.name === "Enemy8") {
+                enemy.x += moveX * speed * dt;
+                enemy.y += moveY * speed * dt;
+                // Apply buff aura to nearby enemies (radius 200)
+                for (const other of meleeEnemies) {
+                    if (other === enemy) continue;
+                    const adx = other.x - enemy.x;
+                    const ady = other.y - enemy.y;
+                    if (adx * adx + ady * ady < 200 * 200) {
+                        // Temporary speed boost (visual: slight red tint)
+                        if (!other.instVars._buffed) {
+                            other.instVars.speed *= 1.3;
+                            other.instVars._buffed = true;
+                            try { other.colorRgb = [1, 0.7, 0.7]; } catch (e) {}
+                        }
+                    }
+                }
+            }
+            // === Enemy2 (Goblin): Evasion — sidestep when player faces them ===
+            else if (enemy.objectType?.name === "Enemy2") {
+                // Strafe perpendicular when close (evasive movement)
+                if (dist < 400) {
+                    const strafeDir = (enemy.uid % 2 === 0) ? 1 : -1;
+                    const strafeFactor = Math.sin(gameTime * 3 + enemy.uid) * 0.5 * strafeDir;
+                    const evadeX = moveX + (-dy / dist) * strafeFactor;
+                    const evadeY = moveY + (dx / dist) * strafeFactor;
+                    const eLen = Math.sqrt(evadeX * evadeX + evadeY * evadeY);
+                    enemy.x += (evadeX / eLen) * speed * 1.2 * dt;
+                    enemy.y += (evadeY / eLen) * speed * 1.2 * dt;
+                } else {
+                    enemy.x += moveX * speed * dt;
+                    enemy.y += moveY * speed * dt;
+                }
+            }
+            // === Default movement ===
             else {
                 enemy.x += moveX * speed * dt;
                 enemy.y += moveY * speed * dt;

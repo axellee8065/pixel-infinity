@@ -30,9 +30,16 @@ import * as DamageCalculator from "./DamageCalculator.js";
 import * as StatusEffects from "./StatusEffects.js";
 import * as ChestSystem from "./ChestSystem.js";
 import * as StatsDisplay from "./StatsDisplay.js";
+import * as MetaUI from "./MetaUI.js";
+import * as i18n from "./i18n.js";
 
 // Expose modules to globalThis for debugging/event sheets
+// Detect language on load
+i18n.detectLanguage();
+
 globalThis.GameConfig = GameConfig;
+globalThis.MetaUI = MetaUI;
+globalThis.i18n = i18n;
 globalThis.GameState = GameState;
 globalThis.InputManager = InputManager;
 globalThis.PlayerController = PlayerController;
@@ -522,6 +529,12 @@ function initGame(runtime) {
     // Destroy any existing tooltips
     UIManager.destroyTooltips();
 
+    // Initialize MetaUI
+    MetaUI.init(runtime);
+
+    // Show daily reward if available
+    MetaUI.showDailyReward();
+
     // Show tutorial for first-time players
     if (!SaveManager.isTutorialShown()) {
         showTutorialOverlay(runtime);
@@ -549,21 +562,20 @@ function showTutorialOverlay(runtime) {
 
         if (tutText) {
             tutText.text = [
-                "=== HOW TO PLAY ===",
+                i18n.t("tutorial_title"),
                 "",
-                "MOVE: Touch & drag (mobile)",
-                "         WASD / Arrows (keyboard)",
+                i18n.t("tutorial_move"),
                 "",
-                "ATTACK: Automatic!",
+                i18n.t("tutorial_attack"),
                 "",
-                "Collect XP gems to level up",
-                "Choose weapons & tomes on level up",
-                "Open chests with Silver",
-                "Defeat the Boss at Level 12!",
+                i18n.t("tutorial_xp"),
+                i18n.t("tutorial_levelup"),
+                i18n.t("tutorial_chest"),
+                i18n.t("tutorial_boss"),
                 "",
-                "PAUSE: Escape / P key",
+                i18n.t("tutorial_pause"),
                 "",
-                ">>> TAP ANYWHERE TO START <<<"
+                i18n.t("tutorial_start")
             ].join("\n");
             tutText.colorRgb = [1, 1, 0.6];
 
