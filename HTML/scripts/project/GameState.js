@@ -3,6 +3,7 @@
 // ============================================
 
 import * as Config from "./GameConfig.js";
+import * as SaveManager from "./SaveManager.js";
 
 // Selected hero stats (set during game init)
 let selectedHeroStats = null;
@@ -130,6 +131,22 @@ export function resetState() {
         state.playerHealth = Config.PLAYER_DEFAULT_HEALTH;
         state.playerCritChance = 0;
         state.playerCritMultiplier = 2.0;
+    }
+
+    // Apply permanent PowerUp bonuses from meta progression
+    try {
+        const bonuses = SaveManager.getAllPowerUpBonuses();
+        if (bonuses.damage > 0) state.playerDamage *= (1 + bonuses.damage / 100);
+        if (bonuses.health > 0) {
+            state.playerMaxHealth += bonuses.health;
+            state.playerHealth = state.playerMaxHealth;
+        }
+        if (bonuses.speed > 0) state.playerSpeed *= (1 + bonuses.speed / 100);
+        if (bonuses.attackSpeed > 0) state.playerAttackSpeed *= (1 + bonuses.attackSpeed / 100);
+        // armor and goldBonus/xpBonus/luck are applied in their respective systems
+        state.baseMaxHealth = state.playerMaxHealth;  // Track base for Ring of Fortitude
+    } catch (e) {
+        console.warn("[GameState] Could not apply PowerUp bonuses:", e);
     }
 
     state.lastAttackTime = 0;

@@ -504,6 +504,21 @@ function killBoss(boss) {
 
     // Add 200 gold reward for victory
     SaveManager.addGold(200);
+
+    // Save run stats and check achievements
+    SaveManager.saveLastRunStats({
+        kills: state.killCount,
+        level: state.playerLevel,
+        time: Math.floor(state.gameTime),
+        goldEarned: (state.goldTextValue || 0) + 200,
+        bossDefeated: true,
+        heroId: state.selectedHeroId
+    });
+    SaveManager.addKills(state.killCount);
+    SaveManager.addPlayTime(Math.floor(state.gameTime));
+    SaveManager.updateHighScore(state.killCount);
+    SaveManager.unlockAchievement("boss_kill");
+
     console.log("[BossManager] Victory! Added 200 gold to player.");
 
     runtime.callFunction("victory");

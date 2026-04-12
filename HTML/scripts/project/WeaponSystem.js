@@ -163,6 +163,13 @@ export function updateWeapons(dt) {
         const stats = WeaponData.getWeaponStatsAtLevel(weaponId, weaponLevel);
         if (!stats) continue;
 
+        // Apply evolution bonuses if evolved
+        if (state.evolvedWeapons && state.evolvedWeapons[weaponId]) {
+            const evo = state.evolvedWeapons[weaponId];
+            stats.damage = Math.round(stats.damage * evo.damageBoost);
+            stats.cooldown *= evo.cooldownBoost;
+        }
+
         // Get full weapon data
         const weaponData = WeaponData.getWeaponData(weaponId);
         if (!weaponData) continue;
@@ -2024,6 +2031,17 @@ export function acquireWeapon(weaponId) {
 
     // Increase level
     state.weaponLevels[weaponId] = currentLevel + 1;
+
+    // Check for weapon evolution at max level
+    if (state.weaponLevels[weaponId] >= WeaponData.MAX_WEAPON_LEVEL) {
+        const evo = WeaponData.getEvolution(weaponId);
+        if (evo && WeaponData.canEvolve(weaponId, state.itemInventory || {})) {
+            // Mark weapon as evolved
+            if (!state.evolvedWeapons) state.evolvedWeapons = {};
+            state.evolvedWeapons[weaponId] = evo;
+            console.log("[WeaponSystem] WEAPON EVOLVED:", weaponId, "->", evo.evolvedName);
+        }
+    }
 
     console.log("[WeaponSystem] Acquired weapon:", weaponId, "level:", state.weaponLevels[weaponId]);
 

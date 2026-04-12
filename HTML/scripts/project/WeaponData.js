@@ -590,4 +590,88 @@ export const DEFAULT_EQUIPPED = {
 // Default available weapon for ALL characters (appears in level-up, not pre-equipped)
 export const DEFAULT_AVAILABLE_WEAPON = "lightning_staff";
 
-console.log("[WeaponData] Loaded", Object.keys(WEAPONS).length, "weapons!");
+// ============================================
+// WEAPON EVOLUTION - Item + Max Level Weapon = Evolved Weapon
+// ============================================
+
+export const EVOLUTIONS = {
+    // weaponId: { requiredItem, evolvedName, bonusDesc, damageBoost, cooldownBoost, specialEffect }
+    "lightning_staff": {
+        requiredItem: "focus_crystal",
+        evolvedName: "Thunder God Staff",
+        bonusDesc: "Chains to 6 enemies, +50% damage",
+        damageBoost: 1.5,
+        cooldownBoost: 0.8,
+        specialEffect: "chain6"
+    },
+    "fire_staff": {
+        requiredItem: "power_core",
+        evolvedName: "Infernal Orb",
+        bonusDesc: "Double explosion radius, +40% damage",
+        damageBoost: 1.4,
+        cooldownBoost: 0.85,
+        specialEffect: "bigExplosion"
+    },
+    "longbow": {
+        requiredItem: "winged_sandals",
+        evolvedName: "Gale Bow",
+        bonusDesc: "Pierces all enemies, +30% damage",
+        damageBoost: 1.3,
+        cooldownBoost: 0.7,
+        specialEffect: "infinitePierce"
+    },
+    "pistol": {
+        requiredItem: "fractured_lens",
+        evolvedName: "Golden Revolver",
+        bonusDesc: "12 bullets, 30% crit, +50% damage",
+        damageBoost: 1.5,
+        cooldownBoost: 0.75,
+        specialEffect: "doubleBurst"
+    },
+    "soul_aura": {
+        requiredItem: "serpents_fang",
+        evolvedName: "Plague Aura",
+        bonusDesc: "Poisons all enemies in range, +60% damage",
+        damageBoost: 1.6,
+        cooldownBoost: 0.7,
+        specialEffect: "poisonAura"
+    },
+    "sword": {
+        requiredItem: "beer",
+        evolvedName: "Berserker Blade",
+        bonusDesc: "Hits all enemies in range, +80% damage",
+        damageBoost: 1.8,
+        cooldownBoost: 0.6,
+        specialEffect: "cleave"
+    },
+    "spinning_axe": {
+        requiredItem: "stone_of_resilience",
+        evolvedName: "Storm Axes",
+        bonusDesc: "6 axes, +40% damage",
+        damageBoost: 1.4,
+        cooldownBoost: 0.75,
+        specialEffect: "moreAxes"
+    },
+    "seeking_dagger": {
+        requiredItem: "tempo_metronome",
+        evolvedName: "Shadow Blades",
+        bonusDesc: "3 daggers per cast, +50% damage",
+        damageBoost: 1.5,
+        cooldownBoost: 0.6,
+        specialEffect: "tripleDagger"
+    }
+};
+
+// Check if a weapon can evolve
+export function canEvolve(weaponId, itemInventory) {
+    const evo = EVOLUTIONS[weaponId];
+    if (!evo) return false;
+    return (itemInventory[evo.requiredItem] || 0) > 0;
+}
+
+// Get evolution data
+export function getEvolution(weaponId) {
+    return EVOLUTIONS[weaponId] || null;
+}
+
+console.log("[WeaponData] Loaded", Object.keys(WEAPONS).length, "weapons,", Object.keys(EVOLUTIONS).length, "evolutions!");

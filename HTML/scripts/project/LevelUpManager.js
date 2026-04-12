@@ -146,8 +146,20 @@ function createUpgradeButtons(runtime, panel, centerX, centerY, panelScale, fina
         });
     }
 
-    // Build final options: mix of tomes and weapons (3 total)
-    // GUARANTEE at least 1 weapon if weapons are available
+    // Build stat upgrade options from GameConfig.UPGRADES
+    const statOptions = Config.UPGRADES.map(u => ({
+        isWeapon: false,
+        isTome: false,
+        isStat: true,
+        statType: u.type,
+        name: u.name,
+        desc: u.desc,
+        value: u.value
+    }));
+    // Pick 1 random stat upgrade
+    const randomStat = statOptions[Math.floor(Math.random() * statOptions.length)];
+
+    // Build final options: 1 weapon + 1 tome + 1 stat (3 total)
     const options = [];
 
     // Shuffle both pools
@@ -155,22 +167,24 @@ function createUpgradeButtons(runtime, panel, centerX, centerY, panelScale, fina
     const shuffledWeapons = weaponOptionsList.sort(() => Math.random() - 0.5);
 
     if (shuffledWeapons.length > 0) {
-        // GUARANTEE: Add 1 weapon first
+        // GUARANTEE: 1 weapon
         options.push(shuffledWeapons[0]);
 
-        // Combine remaining weapons and tomes for the other 2 slots
-        const remainingWeapons = shuffledWeapons.slice(1);
-        const allRemaining = [...shuffledTomes, ...remainingWeapons].sort(() => Math.random() - 0.5);
-
-        // Pick 2 more options from the remaining pool
-        for (let i = 0; i < Math.min(2, allRemaining.length); i++) {
-            options.push(allRemaining[i]);
+        // 1 tome (if available)
+        if (shuffledTomes.length > 0) {
+            options.push(shuffledTomes[0]);
+        } else if (shuffledWeapons.length > 1) {
+            options.push(shuffledWeapons[1]);
         }
+
+        // 1 stat upgrade
+        options.push(randomStat);
     } else {
-        // No weapons available - show only tomes
-        for (let i = 0; i < Math.min(3, shuffledTomes.length); i++) {
+        // No weapons - tomes + stat
+        for (let i = 0; i < Math.min(2, shuffledTomes.length); i++) {
             options.push(shuffledTomes[i]);
         }
+        options.push(randomStat);
     }
 
     // Final shuffle to randomize positions
@@ -212,6 +226,10 @@ function createUpgradeButtons(runtime, panel, centerX, centerY, panelScale, fina
                 btn.instVars.upgradeType = "tome";
                 btn.instVars.upgradeValue = 0;
                 btn.instVars.weaponId = option.tomeId;  // Store tome ID in weaponId field
+            } else if (option.isStat) {
+                btn.instVars.upgradeType = "stat";
+                btn.instVars.upgradeValue = option.value;
+                btn.instVars.weaponId = option.statType;  // Store stat type
             }
         }
 
@@ -465,6 +483,22 @@ export function handleLevelUpClick(e) {
                 // Tome upgrade
                 console.log("[LevelUpManager] Tome upgrade:", btn.instVars.weaponId);
                 TomeSystem.acquireTome(btn.instVars.weaponId);  // weaponId contains tomeId
+                closeLevelUpPanel();
+                return;
+            } else if (btn.instVars.upgradeType === "stat") {
+                // Play confirm sound
+                runtime.callFunction("playAudio", "confirm", 0, 10);
+                // Stat upgrade - apply immediately
+                const statType = btn.instVars.weaponId;
+                const value = btn.instVars.upgradeValue;
+                console.log("[LevelUpManager] Stat upgrade:", statType, "+", value);
+                if (statType === "damage") state.playerDamage += value;
+                else if (statType === "speed") state.playerSpeed += value;
+                else if (statType === "attackspeed") state.playerAttackSpeed += value;
+                else if (statType === "health") {
+                    state.playerMaxHealth += value;
+                    state.playerHealth = Math.min(state.playerHealth + value, state.playerMaxHealth);
+                }
                 closeLevelUpPanel();
                 return;
             }

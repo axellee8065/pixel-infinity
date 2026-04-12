@@ -14,8 +14,26 @@ const defaultSaveData = {
     currentLevel: 1,
     highScore: 0,
     totalKills: 0,
-    totalPlayTime: 0
+    totalPlayTime: 0,
     // Weapons are NOT saved - they reset each run based on hero selection
+
+    // === META PROGRESSION: Permanent stat upgrades ===
+    powerUps: {
+        damage: 0,      // +5% per level
+        health: 0,       // +10 HP per level
+        speed: 0,        // +8% per level
+        attackSpeed: 0,  // +5% per level
+        armor: 0,        // -3% damage taken per level
+        goldBonus: 0,    // +10% gold drop per level
+        xpBonus: 0,      // +8% XP gain per level
+        luck: 0          // +5% rare item chance per level
+    },
+
+    // === ACHIEVEMENTS ===
+    achievements: [],  // Array of unlocked achievement IDs
+
+    // === RUN STATS (last run) ===
+    lastRunStats: null
 };
 
 // Current save data in memory
@@ -192,6 +210,115 @@ export function addKills(kills) {
 export function addPlayTime(seconds) {
     saveData.totalPlayTime += seconds;
     saveGame();
+}
+
+// === POWER-UP SYSTEM (Permanent Stat Upgrades) ===
+
+const POWERUP_DEFS = {
+    damage:      { name: "Attack Power",   desc: "+5% Damage",        costBase: 50,  costScale: 1.4, maxLevel: 20, valuePerLevel: 5 },
+    health:      { name: "Max Health",     desc: "+10 HP",            costBase: 40,  costScale: 1.35, maxLevel: 25, valuePerLevel: 10 },
+    speed:       { name: "Move Speed",     desc: "+8% Speed",         costBase: 45,  costScale: 1.35, maxLevel: 15, valuePerLevel: 8 },
+    attackSpeed: { name: "Attack Speed",   desc: "+5% Attack Speed",  costBase: 60,  costScale: 1.45, maxLevel: 15, valuePerLevel: 5 },
+    armor:       { name: "Armor",          desc: "-3% Damage Taken",  costBase: 55,  costScale: 1.4, maxLevel: 15, valuePerLevel: 3 },
+    goldBonus:   { name: "Gold Find",      desc: "+10% Gold Drop",    costBase: 35,  costScale: 1.3, maxLevel: 20, valuePerLevel: 10 },
+    xpBonus:     { name: "XP Boost",       desc: "+8% XP Gain",       costBase: 40,  costScale: 1.3, maxLevel: 20, valuePerLevel: 8 },
+    luck:        { name: "Luck",           desc: "+5% Rare Items",    costBase: 70,  costScale: 1.5, maxLevel: 10, valuePerLevel: 5 }
+};
+
+export function getPowerUpDefs() { return POWERUP_DEFS; }
+
+export function getPowerUpLevel(stat) {
+    const data = getSaveData();
+    if (!data.powerUps) data.powerUps = {};
+    return data.powerUps[stat] || 0;
+}
+
+export function getPowerUpCost(stat) {
+    const def = POWERUP_DEFS[stat];
+    if (!def) return 999999;
+    const level = getPowerUpLevel(stat);
+    return Math.floor(def.costBase * Math.pow(def.costScale, level));
+}
+
+export function getPowerUpValue(stat) {
+    const def = POWERUP_DEFS[stat];
+    if (!def) return 0;
+    return getPowerUpLevel(stat) * def.valuePerLevel;
+}
+
+export function upgradePowerUp(stat) {
+    const def = POWERUP_DEFS[stat];
+    if (!def) return false;
+    const level = getPowerUpLevel(stat);
+    if (level >= def.maxLevel) return false;
+    const cost = getPowerUpCost(stat);
+    if (!spendGold(cost)) return false;
+    if (!saveData.powerUps) saveData.powerUps = {};
+    saveData.powerUps[stat] = level + 1;
+    saveGame();
+    return true;
+}
+
+export function getAllPowerUpBonuses() {
+    const bonuses = {};
+    for (const stat of Object.keys(POWERUP_DEFS)) {
+        bonuses[stat] = getPowerUpValue(stat);
+    }
+    return bonuses;
+}
+
+// === ACHIEVEMENTS ===
+
+const ACHIEVEMENT_DEFS = [
+    { id: "first_kill",     name: "First Blood",       desc: "Kill your first enemy",          condition: "kills", target: 1, reward: 10 },
+    { id: "kills_100",      name: "Centurion",          desc: "Kill 100 enemies in one run",    condition: "kills", target: 100, reward: 25 },
+    { id: "kills_500",      name: "Slayer",             desc: "Kill 500 enemies in one run",    condition: "kills", target: 500, reward: 50 },
+    { id: "kills_1000",     name: "Massacre",           desc: "Kill 1000 enemies total",        condition: "totalKills", target: 1000, reward: 100 },
+    { id: "boss_kill",      name: "Boss Slayer",        desc: "Defeat the boss",                condition: "bossKill", target: 1, reward: 50 },
+    { id: "level_5",        name: "Getting Strong",     desc: "Reach level 5",                  condition: "level", target: 5, reward: 15 },
+    { id: "level_10",       name: "Veteran",            desc: "Reach level 10",                 condition: "level", target: 10, reward: 30 },
+    { id: "survive_3min",   name: "Survivor",           desc: "Survive for 3 minutes",          condition: "time", target: 180, reward: 20 },
+    { id: "survive_5min",   name: "Endurance",          desc: "Survive for 5 minutes",          condition: "time", target: 300, reward: 40 },
+    { id: "gold_500",       name: "Rich",               desc: "Accumulate 500 gold",            condition: "totalGold", target: 500, reward: 50 },
+    { id: "all_heroes",     name: "Collector",          desc: "Unlock all heroes",              condition: "heroes", target: 8, reward: 200 },
+    { id: "no_damage_30s",  name: "Untouchable",        desc: "Take no damage for 30 seconds",  condition: "noDamage", target: 30, reward: 75 }
+];
+
+export function getAchievementDefs() { return ACHIEVEMENT_DEFS; }
+
+export function isAchievementUnlocked(achId) {
+    const data = getSaveData();
+    if (!data.achievements) data.achievements = [];
+    return data.achievements.includes(achId);
+}
+
+export function unlockAchievement(achId) {
+    if (isAchievementUnlocked(achId)) return false;
+    const def = ACHIEVEMENT_DEFS.find(a => a.id === achId);
+    if (!def) return false;
+    if (!saveData.achievements) saveData.achievements = [];
+    saveData.achievements.push(achId);
+    // Grant gold reward
+    saveData.gold += def.reward;
+    saveGame();
+    console.log("[SaveManager] Achievement unlocked:", def.name, "+", def.reward, "gold!");
+    return true;
+}
+
+export function getUnlockedAchievementCount() {
+    const data = getSaveData();
+    return (data.achievements || []).length;
+}
+
+// === LAST RUN STATS ===
+
+export function saveLastRunStats(stats) {
+    saveData.lastRunStats = stats;
+    saveGame();
+}
+
+export function getLastRunStats() {
+    return getSaveData().lastRunStats;
 }
 
 // Reset save data (for testing or new game)

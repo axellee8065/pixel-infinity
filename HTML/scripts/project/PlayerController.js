@@ -234,6 +234,29 @@ export function gameOver() {
     state.isPlaying = false;
     state.isGameOver = true;
 
+    // Save run stats for result screen
+    try {
+        const SaveMgr = globalThis.SaveManager;
+        if (SaveMgr) {
+            SaveMgr.saveLastRunStats({
+                kills: state.killCount,
+                level: state.playerLevel,
+                time: Math.floor(state.gameTime),
+                goldEarned: state.goldTextValue || 0,
+                bossDefeated: state.bossDefeatedMagnet || false,
+                heroId: state.selectedHeroId
+            });
+            SaveMgr.addKills(state.killCount);
+            SaveMgr.addPlayTime(Math.floor(state.gameTime));
+            SaveMgr.updateHighScore(state.killCount);
+
+            // Check achievements
+            checkRunAchievements(SaveMgr);
+        }
+    } catch (e) {
+        console.warn("[PlayerController] Could not save run stats:", e);
+    }
+
     // Play fail sound and call defeat function
     const runtime = getRuntime();
     runtime.callFunction("playAudio", "fail", 0, 10);
@@ -245,6 +268,31 @@ export function gameOver() {
     if (player) {
         player.opacity = 0.5;
     }
+}
+
+// Check achievements at end of run
+function checkRunAchievements(SaveMgr) {
+    const kills = state.killCount;
+    const level = state.playerLevel;
+    const time = Math.floor(state.gameTime);
+
+    if (kills >= 1) SaveMgr.unlockAchievement("first_kill");
+    if (kills >= 100) SaveMgr.unlockAchievement("kills_100");
+    if (kills >= 500) SaveMgr.unlockAchievement("kills_500");
+    if (level >= 5) SaveMgr.unlockAchievement("level_5");
+    if (level >= 10) SaveMgr.unlockAchievement("level_10");
+    if (time >= 180) SaveMgr.unlockAchievement("survive_3min");
+    if (time >= 300) SaveMgr.unlockAchievement("survive_5min");
+    if (state.bossDefeatedMagnet) SaveMgr.unlockAchievement("boss_kill");
+
+    const totalKills = (SaveMgr.getSaveData().totalKills || 0) + kills;
+    if (totalKills >= 1000) SaveMgr.unlockAchievement("kills_1000");
+
+    const totalGold = SaveMgr.getGold();
+    if (totalGold >= 500) SaveMgr.unlockAchievement("gold_500");
+
+    const heroes = SaveMgr.getUnlockedHeroes();
+    if (heroes.length >= 8) SaveMgr.unlockAchievement("all_heroes");
 }
 
 // Check if player is alive
