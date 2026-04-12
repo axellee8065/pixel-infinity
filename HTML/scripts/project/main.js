@@ -522,7 +522,71 @@ function initGame(runtime) {
     // Destroy any existing tooltips
     UIManager.destroyTooltips();
 
+    // Show tutorial for first-time players
+    if (!SaveManager.isTutorialShown()) {
+        showTutorialOverlay(runtime);
+    }
+
     console.log("[MAIN] Game started!");
+}
+
+// Tutorial overlay for first play
+function showTutorialOverlay(runtime) {
+    GameState.state.isPaused = true;
+
+    try {
+        const vw = runtime.viewportWidth;
+        const vh = runtime.viewportHeight;
+
+        // Create dark overlay text using available text object
+        const textObjs = ['TitleText', 'TimerText', 'KillCountText'];
+        let tutText = null;
+
+        for (const objName of textObjs) {
+            tutText = runtime.objects[objName]?.createInstance("UI", vw / 2, vh / 2);
+            if (tutText) break;
+        }
+
+        if (tutText) {
+            tutText.text = [
+                "=== HOW TO PLAY ===",
+                "",
+                "MOVE: Touch & drag (mobile)",
+                "         WASD / Arrows (keyboard)",
+                "",
+                "ATTACK: Automatic!",
+                "",
+                "Collect XP gems to level up",
+                "Choose weapons & tomes on level up",
+                "Open chests with Silver",
+                "Defeat the Boss at Level 12!",
+                "",
+                "PAUSE: Escape / P key",
+                "",
+                ">>> TAP ANYWHERE TO START <<<"
+            ].join("\n");
+            tutText.colorRgb = [1, 1, 0.6];
+
+            // Dismiss on any click/touch
+            const dismiss = () => {
+                try {
+                    if (tutText && tutText.runtime) tutText.destroy();
+                } catch (e) {}
+                GameState.state.isPaused = false;
+                SaveManager.markTutorialShown();
+                runtime.removeEventListener("pointerdown", dismiss);
+                document.removeEventListener("keydown", dismiss);
+            };
+
+            runtime.addEventListener("pointerdown", dismiss);
+            document.addEventListener("keydown", dismiss);
+        }
+    } catch (e) {
+        // Tutorial failed to show - just unpause
+        GameState.state.isPaused = false;
+        SaveManager.markTutorialShown();
+        console.warn("[MAIN] Tutorial overlay failed:", e);
+    }
 }
 
 // Apply selected hero stats to player
@@ -658,7 +722,13 @@ function Tick(runtime) {
     }
 
     if (!state.isPlaying || state.isPaused || state.isLevelingUp) return;
-    state.gameTime += dt;
+
+    // Apply hit-stop time scaling for impact feel
+    EnemyManager.updateHitStop(dt);
+    const hitScale = EnemyManager.getHitStopScale();
+    const scaledDt = dt * hitScale;
+
+    state.gameTime += scaledDt;
 
     // Handle keyboard input
     InputManager.handleKeyboardInput();

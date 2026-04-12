@@ -1005,8 +1005,31 @@ export function killEnemy(enemy) {
     // Trigger Regen Tome (heal on kill)
     TomeSystem.onEnemyKilled();
 
+    // Hit-stop: brief frame freeze for impact feel
+    triggerHitStop();
+
     // Destroy enemy
     enemy.destroy();
+}
+
+// Hit-stop system - brief time scale reduction for impact
+let hitStopTimer = 0;
+const HIT_STOP_DURATION = 0.032;  // ~2 frames at 60fps
+
+function triggerHitStop() {
+    hitStopTimer = HIT_STOP_DURATION;
+}
+
+export function getHitStopScale() {
+    if (hitStopTimer > 0) return 0.1;  // 10% speed during hit-stop
+    return 1.0;
+}
+
+export function updateHitStop(dt) {
+    if (hitStopTimer > 0) {
+        hitStopTimer -= dt;
+        if (hitStopTimer < 0) hitStopTimer = 0;
+    }
 }
 
 // Show DODGE text above player

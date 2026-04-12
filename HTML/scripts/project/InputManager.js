@@ -39,8 +39,11 @@ export function setupInputHandlers() {
     runtime.addEventListener("pointermove", onPointerMove);
     runtime.addEventListener("pointerup", onPointerUp);
 
-    // Keyboard keydown event for one-time key presses
+    // Keyboard keydown event for one-time key presses + pause
     document.addEventListener("keydown", onKeyDown);
+
+    // Escape/P key for pause (always active)
+    document.addEventListener("keydown", onPauseKey);
 
     // Hide joystick at start
     initializeJoystick();
@@ -72,6 +75,16 @@ function onKeyDown(e) {
     }
 }
 
+// Pause toggle (Escape or P key)
+function onPauseKey(e) {
+    if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+        if (!state.isPlaying) return;
+        if (state.isLevelingUp || state.isGameOver) return;
+        state.isPaused = !state.isPaused;
+        console.log("[InputManager] Game", state.isPaused ? "PAUSED" : "RESUMED");
+    }
+}
+
 function onPointerDown(e) {
     if (state.isLevelingUp) {
         LevelUpManager.handleLevelUpClick(e);
@@ -95,7 +108,12 @@ function onPointerDown(e) {
     const layer = runtime.layout.getLayer("UI");
     const [layerX, layerY] = layer.cssPxToLayer(x, y);
 
-    // Create joystick at touch position (anywhere on screen)
+    // Only allow joystick in bottom 60% of screen (avoid HUD area)
+    const runtime2 = getRuntime();
+    const viewH = runtime2.viewportHeight;
+    if (layerY < viewH * 0.4) return;  // Top 40% reserved for HUD
+
+    // Create joystick at touch position
     state.joystickActive = true;
     state.joystickTouchId = e.pointerId;
 
@@ -171,6 +189,14 @@ function updateJoystick(touchX, touchY) {
     const dx = touchX - joystickBaseX;
     const dy = touchY - joystickBaseY;
     const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Dead zone - ignore micro movements (prevents jitter)
+    const DEAD_ZONE = 15;
+    if (dist < DEAD_ZONE) {
+        state.moveX = 0;
+        state.moveY = 0;
+        return;
+    }
 
     // Normalize and clamp to max radius
     if (dist > 0) {

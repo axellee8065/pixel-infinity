@@ -141,7 +141,7 @@ export const SPAWN_RATE_DECREASE_TIME = 60; // seconds to reach min spawn rate -
 // Joystick
 export const JOYSTICK_BASE_X = 200;
 export const JOYSTICK_BASE_Y = 1700;
-export const JOYSTICK_MAX_RADIUS = 80;
+export const JOYSTICK_MAX_RADIUS = 120;  // Enlarged from 80 for better control
 
 // UI
 export const HP_BAR_WIDTH = 150;  // Fill width

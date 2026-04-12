@@ -182,10 +182,49 @@ export function updateLevelText() {
     }
 }
 
-// Update gold display (if there's a persistent gold counter in UI)
+// Update gold display - persistent HUD counter
 export function updateGoldDisplay() {
-    // Gold display is handled by GoldSystem's floating text
-    // This could be used for a persistent gold counter if added later
+    const runtime = getRuntime();
+    // Try to find or create a GoldHUD text
+    const goldText = runtime.objects.GoldText?.getFirstInstance();
+    if (goldText) {
+        const SaveManager = globalThis.SaveManager;
+        if (SaveManager) {
+            goldText.text = "Gold: " + SaveManager.getGold();
+        }
+    }
+}
+
+// Update silver display during gameplay
+export function updateSilverDisplay(silver) {
+    const runtime = getRuntime();
+    const silverText = runtime.objects.SilverText?.getFirstInstance();
+    if (silverText) {
+        silverText.text = "Silver: " + (silver || 0);
+    }
+}
+
+// Update weapon level indicators on HUD slots
+export function updateWeaponLevelDisplay() {
+    // Show weapon levels as text near weapon slots
+    // This uses existing weapon slot sprites
+    const runtime = getRuntime();
+    const weaponEquippedSprites = runtime.objects.weaponEquipped?.getAllInstances() || [];
+
+    for (const sprite of weaponEquippedSprites) {
+        const slotIndex = sprite.instVars.slot - 1;
+        const weaponId = state.equippedWeapons?.[slotIndex];
+        if (!weaponId) continue;
+
+        const level = state.weaponLevels?.[weaponId] || 0;
+        if (level > 0) {
+            // Check if evolved
+            const isEvolved = state.evolvedWeapons && state.evolvedWeapons[weaponId];
+            // Store level in inst var for tooltip display
+            sprite.instVars.level = level;
+            sprite.instVars.evolved = isEvolved ? 1 : 0;
+        }
+    }
 }
 
 // ============================================

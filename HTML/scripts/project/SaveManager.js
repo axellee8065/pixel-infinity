@@ -33,7 +33,10 @@ const defaultSaveData = {
     achievements: [],  // Array of unlocked achievement IDs
 
     // === RUN STATS (last run) ===
-    lastRunStats: null
+    lastRunStats: null,
+
+    // === TUTORIAL ===
+    tutorialShown: false
 };
 
 // Current save data in memory
@@ -319,6 +322,16 @@ export function saveLastRunStats(stats) {
 
 export function getLastRunStats() {
     return getSaveData().lastRunStats;
+}
+
+// === TUTORIAL ===
+export function isTutorialShown() {
+    return getSaveData().tutorialShown === true;
+}
+
+export function markTutorialShown() {
+    saveData.tutorialShown = true;
+    saveGame();
 }
 
 // Reset save data (for testing or new game)
