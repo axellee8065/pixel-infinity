@@ -1,5 +1,6 @@
 // ============================================
 // GAME CONFIGURATION - All game constants
+// Version: 1.0.1 - Railway Auto-Deploy Enabled
 // ============================================
 
 // Viewport
