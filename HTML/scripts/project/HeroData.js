@@ -120,9 +120,9 @@ export const HEROES = {
     vampire: {
         id: "vampire",
         name: "Vampire",
-        description: "Dark lord who heals 1 HP per hit. Sustain master!",
+        description: "Dark lord who heals 3 HP per hit. Sustain master!",
         attackType: ATTACK_TYPE.RANGED,
-        ability: "Lifesteal: +1 HP per hit",
+        ability: "Lifesteal: +3 HP per hit",
         color: "#8e44ad",  // Purple
         animPrefix: "vampire",
         defaultWeapon: "blood_ritual",
@@ -134,8 +134,8 @@ export const HEROES = {
             critChance: 0,
             critMultiplier: 2.0
         },
-        passive: "lifesteal",  // Heal 1 HP per hit
-        passiveValue: 1,
+        passive: "lifesteal",  // Heal 3 HP per hit (buffed from 1)
+        passiveValue: 3,
         unlocked: false,
         unlockCost: 750
     },
@@ -146,9 +146,9 @@ export const HEROES = {
     skeleton: {
         id: "skeleton",
         name: "Skeleton",
-        description: "Undead warrior with bouncing bones. +15% XP gain!",
+        description: "Undead warrior with bouncing bones. +30% XP gain!",
         attackType: ATTACK_TYPE.RANGED,
-        ability: "+15% XP Gain",
+        ability: "+30% XP Gain",
         color: "#bdc3c7",  // Gray/White
         animPrefix: "skeleton",
         defaultWeapon: "bone_throw",
@@ -160,8 +160,8 @@ export const HEROES = {
             critChance: 0,
             critMultiplier: 2.0
         },
-        passive: "xpBonus",  // +15% XP gain
-        passiveValue: 0.15,
+        passive: "xpBonus",  // +30% XP gain (buffed from 15%)
+        passiveValue: 0.30,
         unlocked: false,
         unlockCost: 600
     },
@@ -198,7 +198,7 @@ export const HEROES = {
     paladin: {
         id: "paladin",
         name: "Paladin",
-        description: "Holy knight with shields. Highest HP, basic melee attack.",
+        description: "Holy knight with shields. Highest HP, powerful melee.",
         attackType: ATTACK_TYPE.MELEE,
         ability: "+50% Max Health",
         color: "#f1c40f",  // Gold
@@ -207,8 +207,8 @@ export const HEROES = {
         stats: {
             health: 180,  // Highest HP!
             speed: 260,   // Slowest
-            damage: 28,
-            attackSpeed: 0.8,
+            damage: 35,   // Buffed from 28
+            attackSpeed: 1.2,  // Buffed from 0.8 (much faster melee)
             critChance: 0,
             critMultiplier: 2.0
         },

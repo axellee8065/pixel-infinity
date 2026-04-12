@@ -6,9 +6,9 @@ import { state, getRuntime } from "./GameState.js";
 import * as DamageEffects from "./DamageEffects.js";
 
 // Poison config
-const POISON_DAMAGE = 2;           // Damage per tick
+const POISON_DAMAGE = 3;           // Damage per tick (buffed from 2)
 const POISON_TICK_RATE = 0.5;      // Seconds between ticks
-const POISON_DURATION = 999;       // Effectively infinite (until death)
+const POISON_DURATION = 5;         // 5 seconds (was 999 infinite)
 const POISON_COLOR = [0.5, 1, 0.5]; // Green tint
 
 // Track poisoned enemies
@@ -24,8 +24,12 @@ const poisonedEnemies = new Map();  // uid -> { timer, tickTimer }
 export function applyPoison(enemy) {
     if (!enemy || !enemy.instVars || !enemy.uid) return;
 
-    // Skip if already poisoned
-    if (enemy.instVars.isPoisoned) return;
+    // If already poisoned, refresh duration instead of skipping
+    if (enemy.instVars.isPoisoned) {
+        const data = poisonedEnemies.get(enemy.uid);
+        if (data) data.timer = POISON_DURATION;
+        return;
+    }
 
     // Mark as poisoned
     enemy.instVars.isPoisoned = true;

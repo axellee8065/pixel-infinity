@@ -363,19 +363,46 @@ export function updateEnemies(dt) {
     const enemies8 = runtime.objects.Enemy8?.getAllInstances() || [];  // Tank enemy
     const meleeEnemies = [...enemies1, ...enemies2, ...enemies3, ...enemies5, ...enemies6, ...enemies8];
 
-    // Update melee enemies
+    // Update melee enemies with type-specific AI
+    const gameTime = state.gameTime || 0;
     for (const enemy of meleeEnemies) {
-        // Move towards player
         const dx = playerPos.x - enemy.x;
         const dy = playerPos.y - enemy.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist > 0) {
             const speed = enemy.instVars.speed;
-            enemy.x += (dx / dist) * speed * dt;
-            enemy.y += (dy / dist) * speed * dt;
+            let moveX = dx / dist;
+            let moveY = dy / dist;
 
-            // Face player (mirror sprite based on direction)
+            // === Enemy3 (Bat): Zigzag movement ===
+            if (enemy.objectType?.name === "Enemy3") {
+                const zigzag = Math.sin(gameTime * 6 + enemy.uid * 0.7) * 0.6;
+                // Perpendicular offset
+                moveX += (-dy / dist) * zigzag;
+                moveY += (dx / dist) * zigzag;
+                const len = Math.sqrt(moveX * moveX + moveY * moveY);
+                if (len > 0) { moveX /= len; moveY /= len; }
+            }
+
+            // === Enemy6 (Brute): Charge when close ===
+            if (enemy.objectType?.name === "Enemy6") {
+                if (dist < 300) {
+                    // Charge! 2x speed when close
+                    enemy.x += moveX * speed * 2.0 * dt;
+                    enemy.y += moveY * speed * 2.0 * dt;
+                } else {
+                    enemy.x += moveX * speed * dt;
+                    enemy.y += moveY * speed * dt;
+                }
+            }
+            // === Enemy8 (Tank): Slow but pulls nearby enemies forward ===
+            else {
+                enemy.x += moveX * speed * dt;
+                enemy.y += moveY * speed * dt;
+            }
+
+            // Face player
             if (dx < 0) {
                 enemy.width = -Math.abs(enemy.width);
             } else {
@@ -385,10 +412,8 @@ export function updateEnemies(dt) {
 
         // Check if touching player (scaled collision radius)
         if (dist < ResponsiveScale.getEnemyCollisionRadius()) {
-            // Check for dodge (Zephyr Amulet)
             const damage = enemy.instVars.damage * dt;
             if (DamageCalculator.checkDodge()) {
-                // Show DODGE text
                 showDodgeText();
             } else {
                 PlayerController.damagePlayer(damage);

@@ -49,7 +49,7 @@ export const WEAPONS = {
         baseRange: 220,  // Bigger range
         damagePerLevel: 6,  // More per level
         cooldownReduction: 0.08,
-        rangePerLevel: 30,  // More range per level
+        rangePerLevel: 15,  // Nerfed from 30 (less AoE scaling)
         effectDuration: 0,
         upgrades: [
             { damage: 6, cooldown: 0, desc: "+6 Damage/tick" },
@@ -100,7 +100,7 @@ export const WEAPONS = {
         pathLength: 319,
         pathWidth: 85,  // Wider path
         pathDuration: 5.0,  // Longer duration
-        tickRate: 0.15,  // Faster ticks
+        tickRate: 0.3,  // Nerfed from 0.15 (halved tick speed)
         damagePerLevel: 2,  // More per level
         durationPerLevel: 0.8,
         effectDuration: 0,
@@ -123,11 +123,11 @@ export const WEAPONS = {
         animationName: "Swift Blade",
         type: "universal",
         weaponType: "melee",
-        baseDamage: 70,  // 2x
-        baseCooldown: 0.5,  // Faster
+        baseDamage: 45,  // Nerfed from 70
+        baseCooldown: 0.6,  // Nerfed from 0.5
         baseRange: 170,  // Longer reach
-        damagePerLevel: 8,  // More per level
-        cooldownReduction: 0.06,
+        damagePerLevel: 5,  // Nerfed from 8
+        cooldownReduction: 0.05,
         effectDuration: 0.2,
         upgrades: [
             { damage: 8, cooldown: 0, desc: "+8 Damage" },
@@ -309,13 +309,13 @@ export const WEAPONS = {
         animationName: "Spinning Axe",
         type: "universal",
         weaponType: "orbit",
-        baseDamage: 16,  // 2x
-        baseCooldown: 2.0,
+        baseDamage: 28,  // Buffed from 16
+        baseCooldown: 1.6,  // Faster from 2.0
         baseRange: 450,
-        orbitCount: 2,
+        orbitCount: 3,  // 3 axes from 2
         orbitDuration: 3.0,
-        damagePerLevel: 3,
-        cooldownReduction: 0.15,
+        damagePerLevel: 4,  // Buffed from 3
+        cooldownReduction: 0.12,
         effectDuration: 0,
         upgrades: [
             { damage: 3, cooldown: 0, desc: "+3 Damage" },
@@ -468,11 +468,11 @@ export const WEAPONS = {
         animationName: "Sword",
         type: "universal",
         weaponType: "melee",
-        baseDamage: 56,  // 2x
-        baseCooldown: 2.0,
+        baseDamage: 50,  // Buffed feel: slower but heavy hit
+        baseCooldown: 1.2,  // Faster from 2.0 to differentiate from swift_blade
         baseRange: 240,
-        damagePerLevel: 6,
-        cooldownReduction: 0.1,
+        damagePerLevel: 7,
+        cooldownReduction: 0.08,
         effectDuration: 0.25,
         upgrades: [
             { damage: 6, cooldown: 0, desc: "+6 Damage" },
@@ -493,12 +493,12 @@ export const WEAPONS = {
         animationName: "Cyclone",
         type: "universal",
         weaponType: "knockback",
-        baseDamage: 16,  // 2x
-        baseCooldown: 2.0,
-        baseRange: 250,
-        knockbackForce: 150,
-        damagePerLevel: 3,
-        cooldownReduction: 0.15,
+        baseDamage: 22,  // Buffed from 16
+        baseCooldown: 1.5,  // Faster from 2.0
+        baseRange: 280,
+        knockbackForce: 200,  // Stronger knockback
+        damagePerLevel: 4,  // Buffed from 3
+        cooldownReduction: 0.12,
         effectDuration: 0,
         upgrades: [
             { damage: 3, cooldown: 0, desc: "+3 Damage" },

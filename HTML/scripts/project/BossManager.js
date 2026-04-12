@@ -232,6 +232,22 @@ function destroyBossHPBar() {
     console.log("[BossManager] Boss HP bar hidden");
 }
 
+// Boss phase thresholds
+const PHASE_2_THRESHOLD = 0.6;  // 60% HP -> Phase 2
+const PHASE_3_THRESHOLD = 0.3;  // 30% HP -> Phase 3
+
+// Get current boss phase (1, 2, or 3)
+function getBossPhase(boss) {
+    if (!boss || !boss.instVars) return 1;
+    const hpPercent = boss.instVars.health / boss.instVars.maxHealth;
+    if (hpPercent <= PHASE_3_THRESHOLD) return 3;
+    if (hpPercent <= PHASE_2_THRESHOLD) return 2;
+    return 1;
+}
+
+// Boss dash state
+let bossDashState = { active: false, chargeTimer: 0, dashTimer: 0, targetX: 0, targetY: 0 };
+
 // Update boss behavior (called every tick)
 let debugLogCounter = 0;
 export function updateBoss(dt) {
@@ -240,10 +256,10 @@ export function updateBoss(dt) {
     const runtime = getRuntime();
     const boss = runtime.objects.Boss1?.getFirstInstance();
 
-    // Debug log every 60 frames (about 1 second)
     debugLogCounter++;
     if (debugLogCounter % 60 === 0) {
-        console.log("[BossManager] updateBoss - boss exists:", !!boss, "position:", boss?.x, boss?.y);
+        const phase = boss ? getBossPhase(boss) : 0;
+        console.log("[BossManager] Phase:", phase, "HP:", boss?.instVars?.health);
     }
 
     if (!boss) {
@@ -257,18 +273,63 @@ export function updateBoss(dt) {
     const playerPos = PlayerController.getPlayerPosition();
     if (playerPos.x === 0 && playerPos.y === 0) return;
 
-    // Move towards player (melee attack)
+    const phase = getBossPhase(boss);
+
+    // Phase-based speed multiplier
+    const speedMult = phase === 3 ? 1.5 : phase === 2 ? 1.2 : 1.0;
+
+    // === DASH ATTACK (Phase 3 only) ===
+    if (phase === 3 && !bossDashState.active && boss.instVars.fireballCooldown <= -2.0) {
+        // Start dash charge
+        bossDashState.active = true;
+        bossDashState.chargeTimer = 1.0;  // 1s charge time
+        bossDashState.dashTimer = 0;
+        bossDashState.targetX = playerPos.x;
+        bossDashState.targetY = playerPos.y;
+        // Flash warning
+        try { boss.colorRgb = [1, 0.5, 0]; } catch (e) {}
+    }
+
+    if (bossDashState.active) {
+        bossDashState.chargeTimer -= dt;
+        if (bossDashState.chargeTimer > 0) {
+            // Charging - shake boss sprite
+            boss.x += (Math.random() - 0.5) * 4;
+            boss.y += (Math.random() - 0.5) * 4;
+            return;  // Don't move during charge
+        }
+        // Dashing!
+        bossDashState.dashTimer += dt;
+        const dashSpeed = 800;
+        const dx = bossDashState.targetX - boss.x;
+        const dy = bossDashState.targetY - boss.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 30 && bossDashState.dashTimer < 1.0) {
+            boss.x += (dx / dist) * dashSpeed * dt;
+            boss.y += (dy / dist) * dashSpeed * dt;
+            // Damage player on contact during dash
+            const dxP = playerPos.x - boss.x;
+            const dyP = playerPos.y - boss.y;
+            if (Math.sqrt(dxP * dxP + dyP * dyP) < ResponsiveScale.scaleRadius(Config.BOSS_COLLISION_RADIUS)) {
+                PlayerController.damagePlayer((boss.instVars?.damage || Config.BOSS_DAMAGE) * 2 * dt);
+            }
+            return;
+        }
+        // Dash ended
+        bossDashState.active = false;
+        try { boss.colorRgb = [1, 1, 1]; } catch (e) {}
+    }
+
+    // === MOVEMENT ===
     const dx = playerPos.x - boss.x;
     const dy = playerPos.y - boss.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist > 0) {
-        // Use Config speed directly if instVars not set
-        const speed = boss.instVars?.speed || Config.BOSS_SPEED;
+        const speed = (boss.instVars?.speed || Config.BOSS_SPEED) * speedMult;
         boss.x += (dx / dist) * speed * dt;
         boss.y += (dy / dist) * speed * dt;
 
-        // Face player
         if (dx < 0) {
             boss.width = -Math.abs(boss.width);
         } else {
@@ -282,17 +343,33 @@ export function updateBoss(dt) {
         PlayerController.damagePlayer(damage * dt);
     }
 
-    // Fireball attack system
+    // === FIREBALL ATTACK (phase-based patterns) ===
     if (boss.instVars.fireballCooldown === undefined) {
         boss.instVars.fireballCooldown = 0;
     }
 
     boss.instVars.fireballCooldown -= dt;
 
-    // Fire fireball every 0.8 seconds from random direction (rapid fire!)
+    const fireballCooldown = phase === 3 ? 0.5 : phase === 2 ? 0.65 : 0.8;
+
     if (boss.instVars.fireballCooldown <= 0) {
-        boss.instVars.fireballCooldown = 0.8;  // 0.8 second cooldown - much faster!
-        fireBossFireball(boss, playerPos);
+        boss.instVars.fireballCooldown = fireballCooldown;
+
+        if (phase === 3) {
+            // Phase 3: 3-spread fireballs
+            fireBossFireball(boss, playerPos);
+            const offset = 0.4;
+            fireBossFireball(boss, { x: playerPos.x + Math.cos(offset) * 150, y: playerPos.y + Math.sin(offset) * 150 });
+            fireBossFireball(boss, { x: playerPos.x - Math.cos(offset) * 150, y: playerPos.y - Math.sin(offset) * 150 });
+        } else if (phase === 2) {
+            // Phase 2: 2 fireballs
+            fireBossFireball(boss, playerPos);
+            const angle = Math.random() * Math.PI * 2;
+            fireBossFireball(boss, { x: playerPos.x + Math.cos(angle) * 100, y: playerPos.y + Math.sin(angle) * 100 });
+        } else {
+            // Phase 1: single fireball
+            fireBossFireball(boss, playerPos);
+        }
     }
 }
 

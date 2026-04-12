@@ -221,10 +221,30 @@ export function getItemData(itemId) {
     return ITEMS[itemId] || null;
 }
 
-// Get random item ID
+// Rarity weights for item drops
+const RARITY_WEIGHTS = {
+    common: 35,
+    uncommon: 30,
+    rare: 20,
+    epic: 12,
+    legendary: 3
+};
+
+// Get random item ID (weighted by rarity)
 export function getRandomItemId() {
     const ids = getAllItemIds();
-    return ids[Math.floor(Math.random() * ids.length)];
+    const items = ids.map(id => ({ id, rarity: ITEMS[id]?.rarity || "common" }));
+
+    // Build weighted pool
+    const pool = [];
+    for (const item of items) {
+        const weight = RARITY_WEIGHTS[item.rarity] || 10;
+        for (let i = 0; i < weight; i++) {
+            pool.push(item.id);
+        }
+    }
+
+    return pool[Math.floor(Math.random() * pool.length)];
 }
 
 // ============================================
