@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Documentation for Tavern Survivors">
+
+
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>Tavern Survivors - Documentation</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/fontawesome.min.css" rel="stylesheet">
+        <link href="css/brands.min.css" rel="stylesheet">
+        <link href="css/solid.min.css" rel="stylesheet">
+        <link href="css/v4-font-face.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script>
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">Tavern Survivors - Documentation</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+
+            <li class="nav-item" data-bs-level="1"><a href="#introduction-to-construct-3" class="nav-link">Introduction to Construct 3</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#javascript-in-construct" class="nav-link">Javascript in Construct</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#survivors-rogue-lite" class="nav-link">Tavern Survivors</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#heroes" class="nav-link">Heroes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#weapons" class="nav-link">Weapons</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#items" class="nav-link">Items</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#game-systems" class="nav-link">Game Systems</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#adding-new-content" class="nav-link">Adding New Content</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#getting-started" class="nav-link">Getting Started</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#support" class="nav-link">Support</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="introduction-to-construct-3">Introduction to Construct 3</h1>
+<p>Construct 3 is a powerful and user-friendly game development platform that allows users to create games without needing to write traditional code. With its intuitive drag-and-drop interface and a wide range of built-in features, Construct 3 makes game creation accessible to beginners and efficient for experienced developers. This documentation will provide a basic overview to help you get started. For more detailed guides and tutorials, additional resources and links will be provided throughout this document.</p>
+<p>Let's start with a few links to help you understand things more easily and quickly.</p>
+<p>First, if you're not very familiar with Construct 3, I recommend reading the official documentation. It explains everything in great detail.</p>
+<p><a href="https://www.construct.net/en/make-games/manuals/construct-3" target="_blank">Construct 3 Docs</a></p>
+<h2 id="javascript-in-construct">Javascript in Construct</h2>
+<p>While this game is developed in Construct 3, it does not rely solely on the traditional event system. Instead, many parts of the game are built using Construct 3's official JavaScript API. This API allows developers to control layouts, objects, behaviors, and systems directly through JavaScript code, providing greater flexibility and deeper control over the game's logic. It's important to note that while general JavaScript knowledge is helpful, understanding Construct 3's specific scripting API is essential for working with this project. For more information, please refer to the official guide.</p>
+<p><a href="https://www.construct.net/en/make-games/manuals/construct-3/scripting/using-scripting/javascript-construct" target="_blank">Javascript in Construct Docs</a></p>
+
+<h2 id="survivors-rogue-lite">Tavern Survivors</h2>
+<p><strong>Welcome to Tavern Survivors – Fight, Level Up, and Survive!</strong><br>
+  Dive into an intense roguelite action game where you battle endless waves of enemies, collect powerful weapons, and unlock unique heroes. Each run is different with random item drops from chests and strategic weapon upgrades.</p>
+
+<p>Choose from 8 unique heroes, each with their own playstyle and passive abilities. Equip up to 4 weapons in your deck, level them up during runs, and synergize with items dropped from treasure chests. Defeat the final boss to claim victory!</p>
+
+<p>Experience fast-paced combat with diverse attack types – from piercing arrows to chain lightning, from spinning axes to soul-draining auras. Collect XP gems, gather gold and silver, open chests for random items, and become the ultimate survivor.</p>
+
+<p><strong>The monsters are coming. Are you ready to survive?</strong></p>
+
+<p>This documentation provides a comprehensive guide to help you understand and modify Tavern Survivors. We will explain the game's core systems, heroes, weapons, items, and how to add new content.</p>
+
+<h2 id="heroes">Heroes</h2>
+<p>The game features 8 playable heroes, each with unique stats, abilities, and default weapons.</p>
+
+<h3>Available Heroes</h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Hero</th>
+      <th>Type</th>
+      <th>Default Weapon</th>
+      <th>Passive Ability</th>
+      <th>Unlock Cost</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Mage</strong></td>
+      <td>Ranged</td>
+      <td>Fire Staff</td>
+      <td>+10% Attack Speed</td>
+      <td>Free</td>
+    </tr>
+    <tr>
+      <td><strong>Archer</strong></td>
+      <td>Ranged</td>
+      <td>Longbow</td>
+      <td>+25% Movement Speed</td>
+      <td>Free</td>
+    </tr>
+    <tr>
+      <td><strong>Cowboy</strong></td>
+      <td>Ranged</td>
+      <td>Pistol</td>
+      <td>+20% Crit Chance, 3x Crit Damage</td>
+      <td>Free</td>
+    </tr>
+    <tr>
+      <td><strong>Sniper</strong></td>
+      <td>Ranged</td>
+      <td>Sniper Rifle</td>
+      <td>+50% Damage</td>
+      <td>500 Gold</td>
+    </tr>
+    <tr>
+      <td><strong>Vampire</strong></td>
+      <td>Ranged</td>
+      <td>Blood Ritual</td>
+      <td>Lifesteal: +1 HP per hit</td>
+      <td>750 Gold</td>
+    </tr>
+    <tr>
+      <td><strong>Skeleton</strong></td>
+      <td>Ranged</td>
+      <td>Bone Throw</td>
+      <td>+15% XP Gain</td>
+      <td>600 Gold</td>
+    </tr>
+    <tr>
+      <td><strong>Viking</strong></td>
+      <td>Melee</td>
+      <td>Spinning Axe</td>
+      <td>+30% Weapon Damage</td>
+      <td>800 Gold</td>
+    </tr>
+    <tr>
+      <td><strong>Paladin</strong></td>
+      <td>Melee</td>
+      <td>Guardian Shield</td>
+      <td>+50% Max Health</td>
+      <td>1000 Gold</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Hero Stats</h3>
+<ul>
+  <li><strong>Health:</strong> Maximum HP (ranges from 100 to 180)</li>
+  <li><strong>Speed:</strong> Movement speed (ranges from 260 to 375)</li>
+  <li><strong>Damage:</strong> Base attack damage (ranges from 18 to 45)</li>
+  <li><strong>Attack Speed:</strong> Attacks per second multiplier</li>
+  <li><strong>Crit Chance:</strong> Percentage chance to deal critical damage</li>
+  <li><strong>Crit Multiplier:</strong> Damage multiplier on critical hits (2x-3x)</li>
+</ul>
+
+<h2 id="weapons">Weapons</h2>
+<p>The game features 20+ unique weapons that can be equipped in a 4-slot deck. Weapons level up during runs through the level-up system (max level 8).</p>
+
+<h3>Weapon Types</h3>
+<ul>
+  <li><strong>Projectile:</strong> Fires bullets/arrows at enemies (Pistol, Longbow, Sniper, Shotgun)</li>
+  <li><strong>Melee:</strong> Slashes nearby enemies (Sword, Swift Blade, Champion Blade)</li>
+  <li><strong>Targeted:</strong> Strikes specific enemies (Lightning Staff, Dark Blade)</li>
+  <li><strong>Aura:</strong> Constant damage around player (Soul Aura, Frost Trail)</li>
+  <li><strong>Orbital:</strong> Rotating projectiles/shields (Guardian Shield, Cyclone, Dragon Flame)</li>
+  <li><strong>Special:</strong> Unique mechanics (Fire Staff, Bone Throw, Blood Ritual, Boomerang)</li>
+</ul>
+
+<h3>Weapon List</h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Weapon</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Lightning Staff</strong></td><td>Targeted</td><td>Chain lightning strikes up to 3 nearby enemies</td></tr>
+    <tr><td><strong>Soul Aura</strong></td><td>Aura</td><td>Large aura that constantly damages nearby enemies</td></tr>
+    <tr><td><strong>Guardian Shield</strong></td><td>Orbital</td><td>Orbiting shields that block incoming damage</td></tr>
+    <tr><td><strong>Inferno Trail</strong></td><td>Special</td><td>Creates a burning fire path every few seconds</td></tr>
+    <tr><td><strong>Swift Blade</strong></td><td>Melee</td><td>Rapidly slashes the nearest enemy</td></tr>
+    <tr><td><strong>Fortune Dice</strong></td><td>Projectile</td><td>Throws dice dealing 1-6 random damage, 6 = +crit</td></tr>
+    <tr><td><strong>Executioner</strong></td><td>Melee</td><td>Instantly kills enemies below 10% HP</td></tr>
+    <tr><td><strong>Blood Ritual</strong></td><td>Special</td><td>Damages enemies in area, heals on kill</td></tr>
+    <tr><td><strong>Boomerang</strong></td><td>Special</td><td>Returns to player, hitting enemies twice</td></tr>
+    <tr><td><strong>Dark Blade</strong></td><td>Targeted</td><td>Teleports to enemy and strikes</td></tr>
+    <tr><td><strong>Longbow</strong></td><td>Projectile</td><td>Piercing arrows that hit multiple enemies</td></tr>
+    <tr><td><strong>Pistol</strong></td><td>Projectile</td><td>Fast-firing handgun</td></tr>
+    <tr><td><strong>Spinning Axe</strong></td><td>Orbital</td><td>Axes spin around the player</td></tr>
+    <tr><td><strong>Bone Throw</strong></td><td>Special</td><td>Bouncing bones that hit multiple times</td></tr>
+    <tr><td><strong>Sniper</strong></td><td>Projectile</td><td>High damage, long range, slow fire rate</td></tr>
+    <tr><td><strong>Frost Trail</strong></td><td>Aura</td><td>Slows and damages enemies in trail</td></tr>
+    <tr><td><strong>Champion Blade</strong></td><td>Melee</td><td>Powerful sword with wide arc</td></tr>
+    <tr><td><strong>Seeking Dagger</strong></td><td>Projectile</td><td>Homes in on nearest enemy</td></tr>
+    <tr><td><strong>Fire Staff</strong></td><td>Special</td><td>Rains fireballs from above</td></tr>
+    <tr><td><strong>Sword</strong></td><td>Melee</td><td>Basic melee attack</td></tr>
+    <tr><td><strong>Cyclone</strong></td><td>Orbital</td><td>Spinning wind around player</td></tr>
+    <tr><td><strong>Dragon Flame</strong></td><td>Orbital</td><td>Fire dragons orbit the player</td></tr>
+    <tr><td><strong>Shotgun</strong></td><td>Projectile</td><td>Spreads multiple pellets</td></tr>
+  </tbody>
+</table>
+
+<h2 id="items">Items</h2>
+<p>Items are obtained from treasure chests during runs. Each item provides unique bonuses that stack when multiple copies are collected.</p>
+
+<h3>Item Rarities</h3>
+<ul>
+  <li><strong style="color: #888;">Common:</strong> Basic stat boosts</li>
+  <li><strong style="color: #2ecc71;">Uncommon:</strong> Moderate bonuses</li>
+  <li><strong style="color: #3498db;">Rare:</strong> Strong effects</li>
+  <li><strong style="color: #9b59b6;">Epic:</strong> Powerful unique abilities</li>
+  <li><strong style="color: #f39c12;">Legendary:</strong> Game-changing effects</li>
+</ul>
+
+<h3>Item List</h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Rarity</th>
+      <th>Effect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Stone of Resilience</td><td>Common</td><td>+25 maximum HP</td></tr>
+    <tr><td>Winged Sandals</td><td>Common</td><td>+15% movement speed</td></tr>
+    <tr><td>Pouch of Plunder</td><td>Common</td><td>+1 gold from enemy kills</td></tr>
+    <tr><td>Beer</td><td>Common</td><td>+10% damage to all attacks</td></tr>
+    <tr><td>Sage's Scroll</td><td>Uncommon</td><td>+8% XP gain from gems</td></tr>
+    <tr><td>Power Core</td><td>Uncommon</td><td>+10% damage to all attacks</td></tr>
+    <tr><td>Precision Sight</td><td>Uncommon</td><td>+20% damage to enemies above 90% HP</td></tr>
+    <tr><td>Tempo Metronome</td><td>Uncommon</td><td>+8% attack speed</td></tr>
+    <tr><td>Key</td><td>Uncommon</td><td>+10% chance for free chests</td></tr>
+    <tr><td>Campfire</td><td>Uncommon</td><td>+5 HP/sec when standing still</td></tr>
+    <tr><td>Brawler's Gauntlet</td><td>Uncommon</td><td>+20% damage to nearby enemies</td></tr>
+    <tr><td>Echoing Tome</td><td>Uncommon</td><td>+12% chance for extra XP gem on kill</td></tr>
+    <tr><td>Fractured Lens</td><td>Rare</td><td>Critical hits deal +1x more damage</td></tr>
+    <tr><td>Serpent's Fang</td><td>Rare</td><td>+10% chance to poison enemies on hit</td></tr>
+    <tr><td>Zephyr Amulet</td><td>Rare</td><td>+10% chance to dodge attacks</td></tr>
+    <tr><td>Focus Crystal</td><td>Rare</td><td>+10% critical hit chance</td></tr>
+    <tr><td>Tyrant's Bane</td><td>Rare</td><td>+15% damage to bosses</td></tr>
+    <tr><td>Velocity Shroud</td><td>Rare</td><td>+20% speed for 3s when taking damage</td></tr>
+    <tr><td>Hoarder's Charm</td><td>Epic</td><td>+2.5% permanent damage per chest opened</td></tr>
+    <tr><td>Leeching Rune</td><td>Epic</td><td>25% chance to heal on critical hits</td></tr>
+    <tr><td>Ring of Fortitude</td><td>Epic</td><td>+20% damage per 100 max HP above base</td></tr>
+    <tr><td>Berserker's Collar</td><td>Epic</td><td>Deal more damage as HP gets lower (up to +100%)</td></tr>
+    <tr><td>Cataclysm Core</td><td>Epic</td><td>2% chance for 20x damage (Ultra Crit)</td></tr>
+    <tr><td>Reaper's Contract</td><td>Legendary</td><td>+0.1% permanent damage per kill</td></tr>
+    <tr><td>Phoenix Feather</td><td>Legendary</td><td>Revive once per run with 50% HP</td></tr>
+  </tbody>
+</table>
+
+<h2 id="game-systems">Game Systems</h2>
+
+<h3>Core Game Loop</h3>
+<ul>
+  <li><strong>Lobby:</strong> Select hero, equip weapons to deck, spend gold on upgrades</li>
+  <li><strong>Game:</strong> Fight waves of enemies, collect XP, level up weapons</li>
+  <li><strong>Level Up:</strong> Choose weapon upgrades when XP bar fills</li>
+  <li><strong>Chests:</strong> Spend silver (run currency) to open chests for random items</li>
+  <li><strong>Boss Fight:</strong> Defeat the boss at level 12 to win and earn 200 gold</li>
+</ul>
+
+<h3>Currency System</h3>
+<ul>
+  <li><strong>Gold:</strong> Persistent currency saved between runs. Used to unlock heroes and buy upgrades in lobby.</li>
+  <li><strong>Silver:</strong> Run-only currency dropped by enemies. Used to open treasure chests during runs.</li>
+</ul>
+
+<h3>Level Up System</h3>
+<ul>
+  <li>Collect XP gems from killed enemies to fill XP bar</li>
+  <li>When bar fills, choose from 3 random weapon upgrade options</li>
+  <li>Weapons can be upgraded up to level 8</li>
+  <li>Each level increases damage, reduces cooldown, or adds special effects</li>
+</ul>
+
+<h3>Tome System</h3>
+<p>Tomes are special pickups that provide permanent run bonuses:</p>
+<ul>
+  <li><strong>Silver Tome:</strong> +50 silver</li>
+  <li><strong>Crit Tome:</strong> +5% crit chance</li>
+  <li><strong>HP Tome:</strong> +25 max HP and heal</li>
+  <li><strong>Damage Tome:</strong> +10% damage</li>
+  <li><strong>XP Tome:</strong> +10% XP gain</li>
+</ul>
+
+<h3>Boss System</h3>
+<ul>
+  <li>Boss spawns at level 12</li>
+  <li>All regular enemies are cleared when boss appears</li>
+  <li>No new enemies spawn during boss fight (1v1)</li>
+  <li>Boss HP scales with equipped items (4000-6000 HP)</li>
+  <li>Boss attacks with fireballs from random directions</li>
+  <li>Defeating boss grants victory and 200 gold reward</li>
+</ul>
+
+<h3>Enemy Types</h3>
+<ul>
+  <li><strong>Enemy 1-5:</strong> Basic melee enemies with varying stats</li>
+  <li><strong>Enemy 6:</strong> Rare enemy type</li>
+  <li><strong>Enemy 7 (Fire Mage):</strong> Ranged attacker that shoots fireballs</li>
+  <li><strong>Enemy 8 (Tank):</strong> High HP, high damage, slow</li>
+</ul>
+
+<h2 id="adding-new-content">Adding New Content</h2>
+
+<h3>Adding a New Hero</h3>
+<ol>
+  <li>Open <code>scripts/HeroData.js</code></li>
+  <li>Add a new hero object to the <code>HEROES</code> constant following this template:
+<pre><code>new_hero: {
+    id: "new_hero",
+    name: "Hero Name",
+    description: "Hero description",
+    attackType: ATTACK_TYPE.RANGED, // or MELEE
+    ability: "Passive ability description",
+    color: "#hexcolor",
+    animPrefix: "new_hero", // animation prefix in Player sprite
+    defaultWeapon: "weapon_id",
+    stats: {
+        health: 120,
+        speed: 300,
+        damage: 25,
+        attackSpeed: 1.0,
+        critChance: 0,
+        critMultiplier: 2.0
+    },
+    passive: "passiveType",
+    passiveValue: 0.1,
+    unlocked: false,
+    unlockCost: 500
+}</code></pre>
+  </li>
+  <li>Add hero animations to Player sprite: <code>new_hero_idle</code> and <code>new_hero_run</code></li>
+  <li>Add hero portrait to <code>characterPortraits</code> sprite</li>
+</ol>
+
+<h3>Adding a New Weapon</h3>
+<ol>
+  <li>Open <code>scripts/WeaponData.js</code></li>
+  <li>Add a new weapon object to the <code>WEAPONS</code> constant:
+<pre><code>"new_weapon": {
+    id: "new_weapon",
+    name: "Weapon Name",
+    description: "Weapon description",
+    animationName: "New Weapon", // animation in Effects sprite
+    type: "universal",
+    weaponType: "projectile", // projectile, melee, aura, targeted, etc.
+    baseDamage: 50,
+    baseCooldown: 1.0,
+    baseRange: 200,
+    damagePerLevel: 5,
+    cooldownReduction: 0.1,
+    effectDuration: 0.3,
+    upgrades: [
+        { damage: 5, cooldown: 0, desc: "+5 Damage" },
+        { damage: 0, cooldown: 0.1, desc: "-0.1s Cooldown" },
+        // ... up to 5 upgrades
+    ]
+}</code></pre>
+  </li>
+  <li>Add weapon animation to Effects sprite</li>
+  <li>Add weapon icon to Weapons sprite</li>
+  <li>Implement weapon logic in <code>scripts/WeaponSystem.js</code> if using new mechanics</li>
+</ol>
+
+<h3>Adding a New Item</h3>
+<ol>
+  <li>Open <code>scripts/ItemSystem.js</code></li>
+  <li>Add a new item to the <code>ITEMS</code> constant:
+<pre><code>new_item: {
+    id: "new_item",
+    name: "Item Name",
+    description: "Item effect description",
+    effect: "effectType", // existing effect type or new
+    value: 10, // effect value per stack
+    rarity: "rare" // common, uncommon, rare, epic, legendary
+}</code></pre>
+  </li>
+  <li>Add item animation to Items sprite matching the <code>id</code></li>
+  <li>If using a new effect type, implement the logic in <code>applyItemEffects()</code></li>
+</ol>
+
+<h2 id="getting-started">Getting Started and Common Questions</h2>
+
+<h3>Project Structure</h3>
+<ul>
+  <li><code>scripts/main.js</code> - Main entry point, game initialization</li>
+  <li><code>scripts/GameState.js</code> - Global game state and variables</li>
+  <li><code>scripts/GameConfig.js</code> - Configuration constants</li>
+  <li><code>scripts/HeroData.js</code> - Hero definitions</li>
+  <li><code>scripts/WeaponData.js</code> - Weapon definitions</li>
+  <li><code>scripts/ItemSystem.js</code> - Item definitions and effects</li>
+  <li><code>scripts/SaveManager.js</code> - LocalStorage save/load</li>
+  <li><code>scripts/PlayerController.js</code> - Player movement and damage</li>
+  <li><code>scripts/EnemyManager.js</code> - Enemy spawning and behavior</li>
+  <li><code>scripts/WeaponSystem.js</code> - Weapon firing and effects</li>
+  <li><code>scripts/LevelUpManager.js</code> - Level up UI and upgrades</li>
+  <li><code>scripts/BossManager.js</code> - Boss spawning and behavior</li>
+  <li><code>scripts/UIManager.js</code> - UI updates and displays</li>
+</ul>
+
+<h3>Common Operations</h3>
+<ul>
+<li>
+<p><strong>Add gold to player:</strong><br>
+<code>SaveManager.addGold(100)</code></p>
+</li>
+<li>
+<p><strong>Unlock a hero:</strong><br>
+<code>SaveManager.setHeroUnlocked("vampire", true)</code></p>
+</li>
+<li>
+<p><strong>Trigger level up:</strong><br>
+<code>XPSystem.levelUp()</code></p>
+</li>
+<li>
+<p><strong>Spawn an enemy:</strong><br>
+<code>EnemyManager.spawnEnemy1(runtime, x, y)</code></p>
+</li>
+<li>
+<p><strong>Add an item to inventory:</strong><br>
+<code>ItemSystem.addItem("power_core")</code></p>
+</li>
+</ul>
+
+<h3>Testing & Debugging</h3>
+<ul>
+<li>
+<p><strong>Test level up (press L key):</strong> Instantly triggers level up screen</p>
+</li>
+<li>
+<p><strong>Test victory (press U key):</strong> Instantly triggers victory</p>
+</li>
+<li>
+<p><strong>Reset game progress:</strong><br>
+Open browser console: <code>localStorage.clear();</code> then refresh</p>
+</li>
+<li>
+<p><strong>Check current state:</strong><br>
+<code>console.log(GameState.state)</code></p>
+</li>
+</ul>
+
+<h3>Configuration</h3>
+<p>Key settings in <code>scripts/GameConfig.js</code>:</p>
+<ul>
+<li><strong>BOSS_SPAWN_LEVEL:</strong> Level when boss appears (default: 12)</li>
+<li><strong>BOSS_HEALTH:</strong> Base boss HP (scales with items)</li>
+<li><strong>ENEMY_SPAWN_RATE:</strong> How often enemies spawn</li>
+<li><strong>XP_PER_LEVEL:</strong> XP required to level up</li>
+<li><strong>CHEST_BASE_COST:</strong> Initial silver cost for chests</li>
+</ul>
+
+<h2 id="support">Support</h2>
+<p>If you have any questions, please contact: posegraphic@gmail.com</p>
+
+</div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js"></script>
+        <script src="search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2025-12-02
+-->

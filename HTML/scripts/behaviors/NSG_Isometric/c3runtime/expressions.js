@@ -1,0 +1,1 @@
+globalThis.C3.Behaviors.NSG_Isometric.Exps = {};
