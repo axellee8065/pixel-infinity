@@ -1082,27 +1082,62 @@ export function handleLobbyClick(e) {
         return;
     }
 
-    // Check Settings button
+    // Check Settings button 1 = LANGUAGE TOGGLE (한국어/English)
     const settingsBtn = runtime.objects.buttonsettings?.getFirstInstance();
     if (settingsBtn && isPointInSprite(layerX, layerY, settingsBtn)) {
         runtime.callFunction("playAudio", "Pickup6", 0, 10);
-        console.log("[LobbyManager] Settings button clicked!");
+        const i18n = globalThis.i18n;
+        if (i18n) {
+            const newLang = i18n.getLanguage() === "ko" ? "en" : "ko";
+            i18n.setLanguage(newLang);
+            // Show feedback text on the button
+            showFloatingText(settingsBtn.x, settingsBtn.y - 40, newLang === "ko" ? "한국어" : "English");
+            console.log("[LobbyManager] Language switched to:", newLang);
+        }
         return;
     }
 
-    // Check Settings button 2
+    // Check Settings button 2 = POWERUP SHOP
     const settingsBtn2 = runtime.objects.buttonsettings2?.getFirstInstance();
     if (settingsBtn2 && isPointInSprite(layerX, layerY, settingsBtn2)) {
         runtime.callFunction("playAudio", "confirm", 0, 10);
-        console.log("[LobbyManager] Settings button 2 clicked!");
+        const MetaUI = globalThis.MetaUI;
+        if (MetaUI) {
+            MetaUI.init(runtime);
+            MetaUI.showPowerUpShop();
+        }
+        console.log("[LobbyManager] PowerUp Shop opened!");
         return;
     }
 
-    // Check Settings button 3
+    // Check Settings button 3 = DAILY REWARD + ACHIEVEMENTS
     const settingsBtn3 = runtime.objects.buttonsettings3?.getFirstInstance();
     if (settingsBtn3 && isPointInSprite(layerX, layerY, settingsBtn3)) {
         runtime.callFunction("playAudio", "confirm", 0, 10);
-        console.log("[LobbyManager] Settings button 3 clicked!");
+        // Show achievement count + daily status
+        const achCount = SaveManager.getUnlockedAchievementCount();
+        const canClaim = SaveManager.canClaimDaily();
+        const streak = SaveManager.getDailyStreak();
+        const i18n = globalThis.i18n;
+        const lang = i18n ? i18n.getLanguage() : "en";
+
+        let infoText = "";
+        if (lang === "ko") {
+            infoText = `업적: ${achCount}/12\n출석: ${streak + 1}일차${canClaim ? " (보상 가능!)" : " (수령 완료)"}`;
+        } else {
+            infoText = `Achievements: ${achCount}/12\nDaily: Day ${streak + 1}${canClaim ? " (Claim!)" : " (Claimed)"}`;
+        }
+
+        if (canClaim) {
+            const MetaUI = globalThis.MetaUI;
+            if (MetaUI) {
+                MetaUI.init(runtime);
+                MetaUI.showDailyReward();
+            }
+        }
+
+        showFloatingText(settingsBtn3.x, settingsBtn3.y - 60, infoText);
+        console.log("[LobbyManager] Achievements/Daily info shown!");
         return;
     }
 
@@ -1223,6 +1258,30 @@ export function handleLobbyClick(e) {
 }
 
 // Check if point is inside sprite bounds
+// Show floating feedback text (used by settings buttons)
+function showFloatingText(x, y, text) {
+    if (!runtime) return;
+    const textObjs = ["GoldText", "TitleText", "TimerText", "KillCountText"];
+    for (const name of textObjs) {
+        const obj = runtime.objects[name];
+        if (!obj) continue;
+        try {
+            const inst = obj.createInstance("Lobby", x, y);
+            if (inst) {
+                inst.text = text;
+                inst.colorRgb = [1, 1, 0.6];
+                inst.opacity = 1;
+                try {
+                    inst.behaviors?.Tween?.startTween("y", y - 80, 2.0, "easeoutquad");
+                    inst.behaviors?.Tween?.startTween("opacity", 0, 2.0, "easeoutquad");
+                } catch (e) {}
+                setTimeout(() => { try { if (inst?.runtime) inst.destroy(); } catch (e) {} }, 2100);
+                return;
+            }
+        } catch (e) {}
+    }
+}
+
 function isPointInSprite(x, y, sprite) {
     const halfW = sprite.width / 2;
     const halfH = sprite.height / 2;
