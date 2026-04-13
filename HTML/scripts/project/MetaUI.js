@@ -1,202 +1,403 @@
 // ============================================
-// META UI - PowerUp Shop, Achievements, Daily/Weekly
+// META UI - HTML overlay-based UI system
+// PowerUp Shop, Achievements, Daily Rewards, Language
 // ============================================
 
 import * as SaveManager from "./SaveManager.js";
-import { t } from "./i18n.js";
+import { t, setLanguage, getLanguage } from "./i18n.js";
 
-let runtime = null;
-let metaUIElements = [];
+let overlayContainer = null;
 
-export function init(rt) {
-    runtime = rt;
+// ============================================
+// INIT - Create overlay container
+// ============================================
+export function init() {
+    if (overlayContainer) return;
+    overlayContainer = document.createElement("div");
+    overlayContainer.id = "meta-overlay";
+    overlayContainer.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 9999; font-family: 'Segoe UI', Arial, sans-serif;
+    `;
+    document.body.appendChild(overlayContainer);
+    console.log("[MetaUI] HTML overlay initialized");
 }
 
 // ============================================
-// POWERUP SHOP (called from lobby)
+// LOBBY BUTTONS - Floating action buttons
 // ============================================
+let lobbyButtonsCreated = false;
 
-export function showPowerUpShop() {
-    if (!runtime) return;
-    closeMeta();
+export function showLobbyButtons() {
+    if (lobbyButtonsCreated) return;
+    init();
+    lobbyButtonsCreated = true;
 
-    const vw = runtime.viewportWidth;
-    const vh = runtime.viewportHeight;
-    const defs = SaveManager.getPowerUpDefs();
-    const stats = Object.keys(defs);
+    const btnStyle = `
+        pointer-events: auto; cursor: pointer;
+        padding: 10px 16px; margin: 6px; border-radius: 12px;
+        font-size: 14px; font-weight: bold; border: 2px solid rgba(255,255,255,0.3);
+        color: #fff; text-shadow: 1px 1px 2px #000;
+        backdrop-filter: blur(4px); transition: transform 0.1s;
+        -webkit-tap-highlight-color: transparent;
+    `;
 
-    // Dark overlay
-    const overlay = createText(vw / 2, vh / 2, "");
-    if (overlay) {
-        overlay.opacity = 0.7;
-        overlay.colorRgb = [0, 0, 0];
+    const bar = document.createElement("div");
+    bar.id = "lobby-buttons";
+    bar.style.cssText = `
+        position: fixed; top: 10px; right: 10px;
+        display: flex; flex-direction: column; align-items: flex-end;
+        pointer-events: auto; z-index: 10000;
+    `;
+
+    // Language button
+    const langBtn = document.createElement("button");
+    langBtn.id = "btn-lang";
+    langBtn.textContent = getLanguage() === "ko" ? "🌐 English" : "🌐 한국어";
+    langBtn.style.cssText = btnStyle + "background: rgba(52,152,219,0.85);";
+    langBtn.onclick = () => {
+        const newLang = getLanguage() === "ko" ? "en" : "ko";
+        setLanguage(newLang);
+        langBtn.textContent = newLang === "ko" ? "🌐 English" : "🌐 한국어";
+        // Refresh other buttons
+        powerBtn.textContent = newLang === "ko" ? "⚡ 강화" : "⚡ PowerUp";
+        achBtn.textContent = newLang === "ko" ? "🏆 업적" : "🏆 Achieve";
+        dailyBtn.textContent = newLang === "ko" ? "🎁 일일보상" : "🎁 Daily";
+    };
+    bar.appendChild(langBtn);
+
+    // PowerUp button
+    const powerBtn = document.createElement("button");
+    powerBtn.id = "btn-powerup";
+    powerBtn.textContent = getLanguage() === "ko" ? "⚡ 강화" : "⚡ PowerUp";
+    powerBtn.style.cssText = btnStyle + "background: rgba(231,76,60,0.85);";
+    powerBtn.onclick = () => showPowerUpShop();
+    bar.appendChild(powerBtn);
+
+    // Achievements button
+    const achBtn = document.createElement("button");
+    achBtn.id = "btn-ach";
+    achBtn.textContent = getLanguage() === "ko" ? "🏆 업적" : "🏆 Achieve";
+    achBtn.style.cssText = btnStyle + "background: rgba(155,89,182,0.85);";
+    achBtn.onclick = () => showAchievements();
+    bar.appendChild(achBtn);
+
+    // Daily button
+    const dailyBtn = document.createElement("button");
+    dailyBtn.id = "btn-daily";
+    dailyBtn.textContent = getLanguage() === "ko" ? "🎁 일일보상" : "🎁 Daily";
+    dailyBtn.style.cssText = btnStyle + "background: rgba(46,204,113,0.85);";
+    if (SaveManager.canClaimDaily()) {
+        dailyBtn.style.animation = "pulse 1s infinite";
+        dailyBtn.style.boxShadow = "0 0 15px rgba(46,204,113,0.8)";
     }
+    dailyBtn.onclick = () => showDailyReward();
+    bar.appendChild(dailyBtn);
 
-    // Title
-    const title = createText(vw / 2, 80, t("powerup_title"));
-    if (title) title.colorRgb = [1, 0.84, 0];
+    overlayContainer.appendChild(bar);
 
-    // List each PowerUp
-    let y = 160;
-    for (const stat of stats) {
-        const def = defs[stat];
+    // Add pulse animation
+    if (!document.getElementById("meta-ui-styles")) {
+        const style = document.createElement("style");
+        style.id = "meta-ui-styles";
+        style.textContent = `
+            @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+            .meta-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+                background: rgba(0,0,0,0.92); border: 2px solid rgba(255,255,255,0.2);
+                border-radius: 16px; padding: 24px; color: #fff; max-width: 90vw; max-height: 80vh;
+                overflow-y: auto; pointer-events: auto; z-index: 10001;
+                font-family: 'Segoe UI', Arial, sans-serif; min-width: 300px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+            .meta-panel h2 { text-align: center; margin: 0 0 16px 0; color: #f1c40f; font-size: 20px; }
+            .meta-panel .close-btn { position: absolute; top: 8px; right: 12px; font-size: 24px;
+                cursor: pointer; color: #aaa; background: none; border: none; }
+            .meta-panel .close-btn:hover { color: #fff; }
+            .meta-row { display: flex; justify-content: space-between; align-items: center;
+                padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .meta-row:last-child { border-bottom: none; }
+            .meta-btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+                font-weight: bold; font-size: 13px; transition: background 0.2s; }
+            .meta-btn:active { transform: scale(0.95); }
+            .meta-btn-buy { background: #27ae60; color: #fff; }
+            .meta-btn-buy:hover { background: #2ecc71; }
+            .meta-btn-max { background: #555; color: #999; cursor: default; }
+            .meta-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.6); pointer-events: auto; z-index: 10000; }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+export function hideLobbyButtons() {
+    const bar = document.getElementById("lobby-buttons");
+    if (bar) bar.remove();
+    lobbyButtonsCreated = false;
+}
+
+// ============================================
+// POWERUP SHOP
+// ============================================
+export function showPowerUpShop() {
+    closePanel();
+    init();
+
+    const backdrop = createBackdrop();
+    const panel = document.createElement("div");
+    panel.className = "meta-panel";
+    panel.innerHTML = `<h2>${t("powerup_title")}</h2><button class="close-btn">&times;</button>`;
+    panel.querySelector(".close-btn").onclick = closePanel;
+
+    const defs = SaveManager.getPowerUpDefs();
+    const gold = SaveManager.getGold();
+
+    for (const [stat, def] of Object.entries(defs)) {
         const level = SaveManager.getPowerUpLevel(stat);
         const cost = SaveManager.getPowerUpCost(stat);
         const maxed = level >= def.maxLevel;
+        const canBuy = !maxed && gold >= cost;
+
+        const row = document.createElement("div");
+        row.className = "meta-row";
+
         const name = t("powerup_" + stat) || def.name;
 
-        const line = `${name}  Lv.${level}/${def.maxLevel}  ${def.desc}  ${maxed ? t("powerup_max") : t("powerup_cost") + ": " + cost + "G"}`;
-        const txt = createText(vw / 2, y, line);
-        if (txt) {
-            txt.colorRgb = maxed ? [0.5, 0.5, 0.5] : [1, 1, 1];
+        row.innerHTML = `
+            <div style="flex:1">
+                <div style="font-weight:bold;color:${maxed ? '#888' : '#fff'}">${name}</div>
+                <div style="font-size:12px;color:#aaa">Lv.${level}/${def.maxLevel} | ${def.desc}</div>
+            </div>
+        `;
 
-            // Store stat name for click handling
-            txt._powerUpStat = stat;
-            txt._powerUpCost = cost;
-            txt._powerUpMaxed = maxed;
-        }
-        y += 55;
-    }
+        const btn = document.createElement("button");
+        btn.className = maxed ? "meta-btn meta-btn-max" : "meta-btn meta-btn-buy";
+        btn.textContent = maxed ? t("powerup_max") || "MAX" : `${cost}G`;
+        btn.style.opacity = canBuy ? "1" : maxed ? "0.5" : "0.6";
 
-    // Close button hint
-    const close = createText(vw / 2, y + 30, "[" + t("tutorial_start").replace(">>>", "").replace("<<<", "").trim() + "]");
-    if (close) close.colorRgb = [0.7, 0.7, 0.7];
-
-    // Handle clicks
-    const clickHandler = (e) => {
-        const layer = runtime.layout.getLayer("UI") || runtime.layout.getLayer(0);
-        if (!layer) return;
-        const [mx, my] = layer.cssPxToLayer(e.clientX, e.clientY);
-
-        // Check if clicked on a PowerUp line
-        for (const el of metaUIElements) {
-            if (el._powerUpStat && !el._powerUpMaxed) {
-                if (Math.abs(mx - el.x) < 300 && Math.abs(my - el.y) < 25) {
-                    if (SaveManager.upgradePowerUp(el._powerUpStat)) {
-                        console.log("[MetaUI] Upgraded:", el._powerUpStat);
-                        try { runtime.callFunction("playAudio", "confirm", 0, 10); } catch (e2) {}
-                        closeMeta();
-                        runtime.removeEventListener("pointerdown", clickHandler);
-                        showPowerUpShop(); // Refresh
-                        return;
-                    }
+        if (canBuy) {
+            btn.onclick = () => {
+                if (SaveManager.upgradePowerUp(stat)) {
+                    closePanel();
+                    showPowerUpShop(); // Refresh
                 }
-            }
+            };
         }
 
-        // Otherwise close
-        closeMeta();
-        runtime.removeEventListener("pointerdown", clickHandler);
-    };
-
-    runtime.addEventListener("pointerdown", clickHandler);
-}
-
-// ============================================
-// ACHIEVEMENT POPUP
-// ============================================
-
-export function showAchievementPopup(achName, reward) {
-    if (!runtime) return;
-
-    const vw = runtime.viewportWidth;
-    const text = createText(vw / 2, 120, `${t("ach_title")}: ${achName}\n+${reward}G`);
-    if (text) {
-        text.colorRgb = [1, 0.84, 0];
-        try {
-            text.behaviors?.Tween?.startTween("y", 20, 2.0, "easeoutquad");
-            text.behaviors?.Tween?.startTween("opacity", 0, 2.0, "easeoutquad");
-        } catch (e) {}
-        setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 2100);
+        row.appendChild(btn);
+        panel.appendChild(row);
     }
+
+    // Gold display
+    const goldDiv = document.createElement("div");
+    goldDiv.style.cssText = "text-align:center;margin-top:12px;color:#f1c40f;font-size:16px;font-weight:bold;";
+    goldDiv.textContent = `${t("hud_gold") || "Gold"}: ${gold}G`;
+    panel.appendChild(goldDiv);
+
+    overlayContainer.appendChild(backdrop);
+    overlayContainer.appendChild(panel);
 }
 
 // ============================================
-// DAILY REWARD SCREEN
+// ACHIEVEMENTS
 // ============================================
+export function showAchievements() {
+    closePanel();
+    init();
 
+    const backdrop = createBackdrop();
+    const panel = document.createElement("div");
+    panel.className = "meta-panel";
+    panel.innerHTML = `<h2>${t("ach_title")}</h2><button class="close-btn">&times;</button>`;
+    panel.querySelector(".close-btn").onclick = closePanel;
+
+    const defs = SaveManager.getAchievementDefs();
+
+    for (const ach of defs) {
+        const unlocked = SaveManager.isAchievementUnlocked(ach.id);
+        const row = document.createElement("div");
+        row.className = "meta-row";
+
+        const achName = t("ach_" + ach.id) || ach.name;
+
+        row.innerHTML = `
+            <div style="flex:1">
+                <div style="font-weight:bold;color:${unlocked ? '#2ecc71' : '#888'}">
+                    ${unlocked ? '✅' : '🔒'} ${achName}
+                </div>
+                <div style="font-size:12px;color:#aaa">${ach.desc}</div>
+            </div>
+            <div style="color:#f1c40f;font-weight:bold;font-size:14px">${ach.reward}G</div>
+        `;
+        panel.appendChild(row);
+    }
+
+    const countDiv = document.createElement("div");
+    countDiv.style.cssText = "text-align:center;margin-top:12px;color:#aaa;font-size:14px;";
+    countDiv.textContent = `${SaveManager.getUnlockedAchievementCount()} / ${defs.length}`;
+    panel.appendChild(countDiv);
+
+    overlayContainer.appendChild(backdrop);
+    overlayContainer.appendChild(panel);
+}
+
+// ============================================
+// DAILY REWARD
+// ============================================
 export function showDailyReward() {
-    if (!runtime) return;
-    if (!SaveManager.canClaimDaily()) return null;
+    closePanel();
+    init();
 
-    const reward = SaveManager.claimDailyReward();
-    if (!reward) return null;
-
-    const vw = runtime.viewportWidth;
+    const canClaim = SaveManager.canClaimDaily();
     const streak = SaveManager.getDailyStreak();
+    const rewards = SaveManager.getDailyRewards();
 
-    const text = createText(vw / 2, 150,
-        `${t("daily_title")} - ${streak + 1}${t("daily_day")}\n+${reward.gold}G${reward.item ? " + " + t("rarity_" + reward.item) : ""}`
-    );
-    if (text) {
-        text.colorRgb = [0.2, 1, 0.4];
-        try {
-            text.behaviors?.Tween?.startTween("y", 50, 2.5, "easeoutquad");
-            text.behaviors?.Tween?.startTween("opacity", 0, 2.5, "easeoutquad");
-        } catch (e) {}
-        setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 2600);
+    const backdrop = createBackdrop();
+    const panel = document.createElement("div");
+    panel.className = "meta-panel";
+    panel.innerHTML = `<h2>${t("daily_title")}</h2><button class="close-btn">&times;</button>`;
+    panel.querySelector(".close-btn").onclick = closePanel;
+
+    for (let i = 0; i < rewards.length; i++) {
+        const r = rewards[i];
+        const isCurrent = i === (canClaim ? streak : streak);
+        const isPast = i < streak && !canClaim;
+        const isClaimable = i === streak && canClaim;
+
+        const row = document.createElement("div");
+        row.className = "meta-row";
+        row.style.background = isClaimable ? "rgba(46,204,113,0.15)" : "transparent";
+        row.style.borderRadius = "8px";
+        row.style.padding = "10px 8px";
+
+        const itemText = r.item ? ` + ${t("rarity_" + r.item) || r.item}` : "";
+
+        row.innerHTML = `
+            <div style="flex:1">
+                <div style="font-weight:bold;color:${isPast ? '#555' : isClaimable ? '#2ecc71' : '#fff'}">
+                    ${isPast ? '✅' : isClaimable ? '🎁' : '📦'} Day ${i + 1}
+                </div>
+                <div style="font-size:12px;color:#aaa">${r.gold}G${itemText}</div>
+            </div>
+        `;
+
+        if (isClaimable) {
+            const btn = document.createElement("button");
+            btn.className = "meta-btn meta-btn-buy";
+            btn.textContent = t("daily_claim") || "Claim!";
+            btn.style.animation = "pulse 1s infinite";
+            btn.onclick = () => {
+                SaveManager.claimDailyReward();
+                closePanel();
+                showDailyReward();
+                // Update daily button glow
+                const dailyBtn = document.getElementById("btn-daily");
+                if (dailyBtn) {
+                    dailyBtn.style.animation = "none";
+                    dailyBtn.style.boxShadow = "none";
+                }
+            };
+            row.appendChild(btn);
+        }
+
+        panel.appendChild(row);
     }
 
-    try { runtime.callFunction("playAudio", "PowerUp", 0, 10); } catch (e) {}
-    return reward;
+    const streakDiv = document.createElement("div");
+    streakDiv.style.cssText = "text-align:center;margin-top:12px;color:#f1c40f;font-size:14px;";
+    streakDiv.textContent = `${t("daily_streak") || "Streak"}: ${streak + (canClaim ? 0 : 1)} ${t("daily_day") || "days"}`;
+    panel.appendChild(streakDiv);
+
+    overlayContainer.appendChild(backdrop);
+    overlayContainer.appendChild(panel);
+}
+
+// ============================================
+// ACHIEVEMENT POPUP (in-game notification)
+// ============================================
+export function showAchievementPopup(achName, reward) {
+    init();
+    const popup = document.createElement("div");
+    popup.style.cssText = `
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: linear-gradient(135deg, rgba(241,196,15,0.95), rgba(243,156,18,0.95));
+        color: #000; padding: 12px 24px; border-radius: 12px;
+        font-weight: bold; font-size: 15px; z-index: 10002;
+        pointer-events: none; text-align: center;
+        box-shadow: 0 4px 16px rgba(241,196,15,0.4);
+        animation: slideDown 0.3s ease-out, fadeOut 0.5s 2.5s forwards;
+    `;
+    popup.innerHTML = `🏆 ${achName}<br><span style="font-size:13px">+${reward}G</span>`;
+
+    if (!document.getElementById("meta-popup-styles")) {
+        const s = document.createElement("style");
+        s.id = "meta-popup-styles";
+        s.textContent = `
+            @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+            @keyframes fadeOut { to { opacity: 0; top: -20px; } }
+        `;
+        document.head.appendChild(s);
+    }
+
+    overlayContainer.appendChild(popup);
+    setTimeout(() => popup.remove(), 3000);
 }
 
 // ============================================
 // RUN RESULT SCREEN
 // ============================================
-
 export function showRunResult(stats) {
-    if (!runtime) return;
-
-    const vw = runtime.viewportWidth;
-    const vh = runtime.viewportHeight;
+    init();
     const isVictory = stats.bossDefeated;
 
-    const lines = [
-        isVictory ? t("gameover_victory") : t("gameover_defeat"),
-        "",
-        `${t("gameover_kills")}: ${stats.kills}`,
-        `${t("gameover_level")}: ${stats.level}`,
-        `${t("gameover_time")}: ${Math.floor(stats.time / 60)}:${String(stats.time % 60).padStart(2, "0")}`,
-        `${t("gameover_gold")}: ${stats.goldEarned}G`
-    ].join("\n");
+    const panel = document.createElement("div");
+    panel.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+        background: rgba(0,0,0,0.9); border: 3px solid ${isVictory ? '#f1c40f' : '#e74c3c'};
+        border-radius: 16px; padding: 32px; color: #fff; text-align: center;
+        pointer-events: auto; z-index: 10001; min-width: 280px;
+        box-shadow: 0 0 30px ${isVictory ? 'rgba(241,196,15,0.3)' : 'rgba(231,76,60,0.3)'};
+    `;
 
-    const text = createText(vw / 2, vh * 0.35, lines);
-    if (text) {
-        text.colorRgb = isVictory ? [1, 0.84, 0] : [1, 0.3, 0.3];
-    }
+    const mins = Math.floor(stats.time / 60);
+    const secs = String(stats.time % 60).padStart(2, "0");
+
+    panel.innerHTML = `
+        <h2 style="color:${isVictory ? '#f1c40f' : '#e74c3c'};font-size:28px;margin:0 0 20px 0">
+            ${isVictory ? t("gameover_victory") : t("gameover_defeat")}
+        </h2>
+        <div style="font-size:16px;line-height:2">
+            ${t("gameover_kills")}: <b>${stats.kills}</b><br>
+            ${t("gameover_level")}: <b>${stats.level}</b><br>
+            ${t("gameover_time")}: <b>${mins}:${secs}</b><br>
+            ${t("gameover_gold")}: <b style="color:#f1c40f">${stats.goldEarned}G</b>
+        </div>
+    `;
+
+    overlayContainer.appendChild(panel);
+    setTimeout(() => { if (panel.parentNode) panel.remove(); }, 8000);
 }
 
 // ============================================
 // HELPERS
 // ============================================
-
-function createText(x, y, content) {
-    if (!runtime) return null;
-    const textObjs = ["TitleText", "TimerText", "KillCountText", "DamageText"];
-    for (const name of textObjs) {
-        const obj = runtime.objects[name];
-        if (!obj) continue;
-        const layer = runtime.layout.getLayer("UI") || runtime.layout.getLayer(0);
-        if (!layer) continue;
-        try {
-            const inst = obj.createInstance(layer.name, x, y);
-            if (inst) {
-                inst.text = content;
-                inst.opacity = 1;
-                metaUIElements.push(inst);
-                return inst;
-            }
-        } catch (e) {}
-    }
-    return null;
+function createBackdrop() {
+    const backdrop = document.createElement("div");
+    backdrop.className = "meta-backdrop";
+    backdrop.onclick = closePanel;
+    return backdrop;
 }
 
-export function closeMeta() {
-    for (const el of metaUIElements) {
-        try { if (el?.runtime) el.destroy(); } catch (e) {}
-    }
-    metaUIElements = [];
+export function closePanel() {
+    if (!overlayContainer) return;
+    const backdrops = overlayContainer.querySelectorAll(".meta-backdrop");
+    const panels = overlayContainer.querySelectorAll(".meta-panel");
+    backdrops.forEach(b => b.remove());
+    panels.forEach(p => p.remove());
+}
+
+// Hide all meta UI (for game start)
+export function hideAll() {
+    hideLobbyButtons();
+    closePanel();
 }
 
 console.log("[MetaUI] Module loaded!");

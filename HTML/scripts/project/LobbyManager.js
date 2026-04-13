@@ -1082,62 +1082,26 @@ export function handleLobbyClick(e) {
         return;
     }
 
-    // Check Settings button 1 = LANGUAGE TOGGLE (한국어/English)
+    // Settings buttons also trigger HTML Meta UI (backup for C3 buttons)
     const settingsBtn = runtime.objects.buttonsettings?.getFirstInstance();
     if (settingsBtn && isPointInSprite(layerX, layerY, settingsBtn)) {
         runtime.callFunction("playAudio", "Pickup6", 0, 10);
-        const i18n = globalThis.i18n;
-        if (i18n) {
-            const newLang = i18n.getLanguage() === "ko" ? "en" : "ko";
-            i18n.setLanguage(newLang);
-            // Show feedback text on the button
-            showFloatingText(settingsBtn.x, settingsBtn.y - 40, newLang === "ko" ? "한국어" : "English");
-            console.log("[LobbyManager] Language switched to:", newLang);
-        }
+        const MetaUI = globalThis.MetaUI;
+        if (MetaUI) MetaUI.showPowerUpShop();
         return;
     }
-
-    // Check Settings button 2 = POWERUP SHOP
     const settingsBtn2 = runtime.objects.buttonsettings2?.getFirstInstance();
     if (settingsBtn2 && isPointInSprite(layerX, layerY, settingsBtn2)) {
         runtime.callFunction("playAudio", "confirm", 0, 10);
         const MetaUI = globalThis.MetaUI;
-        if (MetaUI) {
-            MetaUI.init(runtime);
-            MetaUI.showPowerUpShop();
-        }
-        console.log("[LobbyManager] PowerUp Shop opened!");
+        if (MetaUI) MetaUI.showAchievements();
         return;
     }
-
-    // Check Settings button 3 = DAILY REWARD + ACHIEVEMENTS
     const settingsBtn3 = runtime.objects.buttonsettings3?.getFirstInstance();
     if (settingsBtn3 && isPointInSprite(layerX, layerY, settingsBtn3)) {
         runtime.callFunction("playAudio", "confirm", 0, 10);
-        // Show achievement count + daily status
-        const achCount = SaveManager.getUnlockedAchievementCount();
-        const canClaim = SaveManager.canClaimDaily();
-        const streak = SaveManager.getDailyStreak();
-        const i18n = globalThis.i18n;
-        const lang = i18n ? i18n.getLanguage() : "en";
-
-        let infoText = "";
-        if (lang === "ko") {
-            infoText = `업적: ${achCount}/12\n출석: ${streak + 1}일차${canClaim ? " (보상 가능!)" : " (수령 완료)"}`;
-        } else {
-            infoText = `Achievements: ${achCount}/12\nDaily: Day ${streak + 1}${canClaim ? " (Claim!)" : " (Claimed)"}`;
-        }
-
-        if (canClaim) {
-            const MetaUI = globalThis.MetaUI;
-            if (MetaUI) {
-                MetaUI.init(runtime);
-                MetaUI.showDailyReward();
-            }
-        }
-
-        showFloatingText(settingsBtn3.x, settingsBtn3.y - 60, infoText);
-        console.log("[LobbyManager] Achievements/Daily info shown!");
+        const MetaUI = globalThis.MetaUI;
+        if (MetaUI) MetaUI.showDailyReward();
         return;
     }
 

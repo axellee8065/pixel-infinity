@@ -353,6 +353,15 @@ function initLobby(runtime) {
 
     LobbyManager.init(runtime);
 
+    // Show Meta UI lobby buttons (HTML overlay)
+    MetaUI.init();
+    MetaUI.showLobbyButtons();
+
+    // Show daily reward if available
+    if (SaveManager.canClaimDaily()) {
+        setTimeout(() => MetaUI.showDailyReward(), 500);
+    }
+
     // Setup click handler for lobby buttons (also handles mobile tooltips)
     lobbyClickHandler = (e) => {
         LobbyManager.handleLobbyClick(e);
@@ -393,6 +402,9 @@ function initHeroes(runtime) {
 // ============================================
 function initGame(runtime) {
     console.log("[MAIN] Initializing Game...");
+
+    // Hide lobby UI buttons
+    MetaUI.hideAll();
 
     // Remove menu listeners when entering game
     removeAllLayoutListeners();
