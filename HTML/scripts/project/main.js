@@ -354,13 +354,16 @@ function initLobby(runtime) {
     LobbyManager.init(runtime);
 
     // Show Meta UI lobby buttons (HTML overlay)
-    MetaUI.init();
-    MetaUI.showLobbyButtons();
-
-    // Show daily reward if available
-    if (SaveManager.canClaimDaily()) {
-        setTimeout(() => MetaUI.showDailyReward(), 500);
-    }
+    // Delay to ensure C3 runtime is fully loaded
+    setTimeout(() => {
+        try {
+            MetaUI.init();
+            MetaUI.showLobbyButtons();
+            console.log("[MAIN] MetaUI lobby buttons shown");
+        } catch (e) {
+            console.error("[MAIN] MetaUI init failed:", e);
+        }
+    }, 300);
 
     // Setup click handler for lobby buttons (also handles mobile tooltips)
     lobbyClickHandler = (e) => {
