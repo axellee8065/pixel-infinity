@@ -81,6 +81,18 @@ export function showLobbyButtons() {
         return b;
     };
 
+    // User profile + Logout button
+    const auth = globalThis.AuthUI;
+    const username = auth?.getUsername() || "Guest";
+    const profileBtn = mkBtn("👤", username, username, "rgba(100,100,100,0.9)", () => {
+        if (confirm(lang() === "ko"
+            ? `${username}\n\nLogout and return to login screen?`
+            : `${username}\n\nLogout and return to login screen?`)) {
+            if (auth) auth.logout();
+            location.reload();
+        }
+    });
+
     const langBtn = mkBtn("🌐", "English", "한국어", "rgba(52,152,219,0.9)", (b) => {
         try {
             const m = i18n();
