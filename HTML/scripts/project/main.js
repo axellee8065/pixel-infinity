@@ -32,6 +32,7 @@ import * as ChestSystem from "./ChestSystem.js";
 import * as StatsDisplay from "./StatsDisplay.js";
 import * as MetaUI from "./MetaUI.js";
 import * as i18n from "./i18n.js";
+import * as NetworkManager from "./NetworkManager.js";
 
 // Expose modules to globalThis for debugging/event sheets
 // Detect language on load
@@ -40,6 +41,7 @@ i18n.detectLanguage();
 globalThis.GameConfig = GameConfig;
 globalThis.MetaUI = MetaUI;
 globalThis.i18n = i18n;
+globalThis.NetworkManager = NetworkManager;
 globalThis.GameState = GameState;
 globalThis.InputManager = InputManager;
 globalThis.PlayerController = PlayerController;
@@ -354,16 +356,24 @@ function initLobby(runtime) {
     LobbyManager.init(runtime);
 
     // Show Meta UI lobby buttons (HTML overlay)
-    // Delay to ensure C3 runtime is fully loaded
     setTimeout(() => {
         try {
             MetaUI.init();
             MetaUI.showLobbyButtons();
+            // Add leaderboard button
+            addLeaderboardButton();
             console.log("[MAIN] MetaUI lobby buttons shown");
         } catch (e) {
             console.error("[MAIN] MetaUI init failed:", e);
         }
     }, 300);
+
+    // Connect to multiplayer server
+    NetworkManager.connect().then(() => {
+        console.log("[MAIN] Connected to multiplayer server");
+    }).catch(() => {
+        console.log("[MAIN] Offline mode - multiplayer unavailable");
+    });
 
     // Setup click handler for lobby buttons (also handles mobile tooltips)
     lobbyClickHandler = (e) => {
@@ -547,8 +557,13 @@ function initGame(runtime) {
     // Initialize MetaUI
     MetaUI.init(runtime);
 
-    // Show daily reward if available
-    MetaUI.showDailyReward();
+    // Join multiplayer room
+    try {
+        const heroId = SaveManager.getSelectedHeroId();
+        NetworkManager.joinGame(heroId, "Player_" + Math.random().toString(36).substr(2, 4));
+    } catch (e) {
+        console.log("[MAIN] Multiplayer join failed, playing offline");
+    }
 
     // Show tutorial for first-time players
     if (!SaveManager.isTutorialShown()) {
@@ -559,6 +574,20 @@ function initGame(runtime) {
 }
 
 // Tutorial overlay for first play
+function addLeaderboardButton() {
+    const bar = document.getElementById("pi-buttons");
+    if (!bar) return;
+    const isKo = i18n.getLanguage() === "ko";
+    const btn = document.createElement("button");
+    btn.textContent = isKo ? "🏅 리더보드" : "🏅 Ranking";
+    btn.style.cssText = "background:rgba(243,156,18,0.9);";
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        NetworkManager.showLeaderboard();
+    });
+    bar.appendChild(btn);
+}
+
 function showTutorialOverlay(runtime) {
     GameState.state.isPaused = true;
 
@@ -766,6 +795,9 @@ function Tick(runtime) {
 
     // Update camera shake effect (must be after player update)
     DamageEffects.updateCameraShake(dt);
+
+    // Update remote multiplayer players
+    try { NetworkManager.updateRemotePlayers(runtime); } catch (e) {}
 
     // Update enemies
     EnemyManager.updateEnemies(dt);

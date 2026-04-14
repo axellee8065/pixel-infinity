@@ -234,6 +234,32 @@ export function gameOver() {
     state.isPlaying = false;
     state.isGameOver = true;
 
+    // Submit score to multiplayer leaderboard
+    try {
+        const NM = globalThis.NetworkManager;
+        if (NM) {
+            NM.submitScore({
+                name: "Player_" + (NM.getMyId() || "").substr(0, 4),
+                kills: state.killCount,
+                level: state.playerLevel,
+                time: Math.floor(state.gameTime),
+                heroId: state.selectedHeroId
+            });
+            NM.notifyDeath();
+        }
+    } catch (e) {}
+
+    // Show run result
+    try {
+        const MetaUI = globalThis.MetaUI;
+        if (MetaUI) MetaUI.showRunResult({
+            kills: state.killCount, level: state.playerLevel,
+            time: Math.floor(state.gameTime),
+            goldEarned: state.goldTextValue || 0,
+            bossDefeated: state.bossDefeatedMagnet || false
+        });
+    } catch (e) {}
+
     // Save run stats for result screen
     try {
         const SaveMgr = globalThis.SaveManager;
