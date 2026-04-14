@@ -25,6 +25,11 @@ const io = new Server(server, {
 app.use(express.static(join(__dirname, "HTML")));
 app.use(express.json());
 
+// Health check
+app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", uptime: process.uptime(), users: users.size });
+});
+
 // ============================================
 // AUTH SYSTEM (in-memory, persists until restart)
 // ============================================
