@@ -8,9 +8,15 @@ let buttonsEl = null;
 let styleAdded = false;
 
 function SM() { return globalThis.SaveManager; }
+function LM() { return globalThis.LobbyManager; }
 function i18n() { return globalThis.i18n; }
 function tt(key) { const m = i18n(); return m ? m.t(key) : key; }
 function lang() { const m = i18n(); return m ? m.getLanguage() : "en"; }
+
+// Refresh lobby gold display after any gold change
+function refreshGold() {
+    try { LM()?.updateLobbyUI(); } catch (e) {}
+}
 
 // ============================================
 // STYLES
@@ -168,6 +174,7 @@ export function showPowerUpShop() {
         if (canBuy) {
             btn.addEventListener("click", () => {
                 sm.upgradePowerUp(stat);
+                refreshGold();
                 closePanel();
                 showPowerUpShop();
             });
@@ -252,6 +259,7 @@ export function showDailyReward() {
             btn.textContent = lang() === "ko" ? "받기!" : "Claim!";
             btn.addEventListener("click", () => {
                 sm.claimDailyReward();
+                refreshGold();
                 closePanel();
                 showDailyReward();
                 // Remove glow from lobby button
