@@ -93,7 +93,26 @@ function initSocket(url) {
     socket.on("take_damage", (data) => {
         // Another player hit us
         const PC = globalThis.PlayerController;
-        if (PC) PC.damagePlayer(data.damage);
+        const state = globalThis.GameState?.state;
+        if (PC && state) {
+            PC.damagePlayer(data.damage);
+            // Show "PvP!" text
+            const pos = PC.getPlayerPosition();
+            try {
+                const rt = globalThis.GameState.getRuntime();
+                const t = rt.objects.DamageText?.createInstance("Game", pos.x, pos.y - 50);
+                if (t) {
+                    t.text = "-" + Math.round(data.damage);
+                    t.colorRgb = [1, 0.2, 0.2];
+                    t.opacity = 1;
+                    try {
+                        t.behaviors.Tween.startTween("y", pos.y - 150, 0.8, "easeoutquad");
+                        t.behaviors.Tween.startTween("opacity", 0, 0.8, "easeoutquad");
+                    } catch (e) {}
+                    setTimeout(() => { try { if (t?.runtime) t.destroy(); } catch (e) {} }, 900);
+                }
+            } catch (e) {}
+        }
     });
 
     socket.on("leaderboard_update", (data) => {
@@ -265,7 +284,7 @@ export function updateRemotePlayers(runtime) {
             p.sprite.width = Math.abs(p.sprite.width);
         }
 
-        // Check collision with local player (PvP damage)
+        // Check collision with local player (PvP contact damage)
         const PC = globalThis.PlayerController;
         if (PC) {
             const myPos = PC.getPlayerPosition();
@@ -273,14 +292,82 @@ export function updateRemotePlayers(runtime) {
             const dy = myPos.y - p.sprite.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 80) {
-                // Deal collision damage (5 per second)
-                const state = globalThis.GameState?.state;
-                if (state) {
-                    PC.damagePlayer(5 * (1/60));  // ~5 DPS on contact
-                }
+                PC.damagePlayer(8 * (1/60));  // 8 DPS on contact
             }
         }
+
+        // Check if local player's melee/aura weapons hit this remote player
+        checkMeleeHitOnRemote(p);
     }
+}
+
+// PvP: Check if local melee/aura weapons hit a remote player
+let pvpMeleeCooldowns = new Map();  // playerId -> lastHitTime
+
+function checkMeleeHitOnRemote(rp) {
+    if (!rp.isAlive || !rp.sprite || !socket || !connected) return;
+
+    const PC = globalThis.PlayerController;
+    const state = globalThis.GameState?.state;
+    if (!PC || !state) return;
+
+    const myPos = PC.getPlayerPosition();
+    const dx = myPos.x - rp.sprite.x;
+    const dy = myPos.y - rp.sprite.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Melee range check (200px for melee weapons, 300px for aura)
+    const now = Date.now();
+    const lastHit = pvpMeleeCooldowns.get(rp.id) || 0;
+    if (now - lastHit < 500) return;  // 0.5s cooldown between PvP melee hits
+
+    // Check if player has melee/aura weapons active
+    const weapons = state.equippedWeapons || [];
+    for (let i = 0; i < weapons.length; i++) {
+        const wid = weapons[i];
+        if (!wid) continue;
+        const wlv = state.weaponLevels?.[wid] || 0;
+        if (wlv <= 0) continue;
+
+        // Soul Aura range check
+        if (wid === "soul_aura" && dist < 300) {
+            const dmg = 15 + wlv * 3;
+            attackPlayer(rp.id, dmg);
+            pvpMeleeCooldowns.set(rp.id, now);
+            showPvPHit(rp.sprite, dmg);
+            return;
+        }
+
+        // Melee weapon range check (swift_blade, sword, spinning_axe)
+        if ((wid === "swift_blade" || wid === "sword" || wid === "spinning_axe") && dist < 200) {
+            const dmg = 10 + wlv * 4;
+            attackPlayer(rp.id, dmg);
+            pvpMeleeCooldowns.set(rp.id, now);
+            showPvPHit(rp.sprite, dmg);
+            return;
+        }
+    }
+}
+
+function showPvPHit(sprite, dmg) {
+    try {
+        const runtime = globalThis.GameState?.getRuntime?.();
+        if (!runtime) return;
+        const text = runtime.objects.DamageText?.createInstance("Game", sprite.x, sprite.y - 40);
+        if (text) {
+            text.text = String(Math.round(dmg));
+            text.colorRgb = [1, 0.5, 0];
+            text.opacity = 1;
+            try {
+                text.behaviors.Tween.startTween("y", sprite.y - 140, 0.8, "easeoutquad");
+                text.behaviors.Tween.startTween("opacity", 0, 0.8, "easeoutquad");
+            } catch (e) {}
+            setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 900);
+        }
+        // Flash white
+        sprite.colorRgb = [1, 1, 1];
+        setTimeout(() => { try { if (sprite?.runtime) sprite.colorRgb = [1, 0.4, 0.4]; } catch (e) {} }, 80);
+    } catch (e) {}
 }
 
 export function getRemotePlayers() { return remotePlayers; }

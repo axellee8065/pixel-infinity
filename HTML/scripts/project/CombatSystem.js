@@ -197,6 +197,60 @@ export function checkCollisions() {
 
                     if (!bullet.instVars.piercing) {
                         bullet.destroy();
+                        bulletHit = true;
+                    }
+                }
+            }
+        }
+
+        // === PvP: Check bullet vs remote players ===
+        if (!bulletHit) {
+            const NM = globalThis.NetworkManager;
+            if (NM && NM.isConnected()) {
+                const remotePlayers = NM.getRemotePlayers();
+                for (const [id, rp] of remotePlayers) {
+                    if (!rp.isAlive || !rp.sprite) continue;
+                    const dx = bullet.x - rp.sprite.x;
+                    const dy = bullet.y - rp.sprite.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 60) {  // PvP hit radius
+                        const baseDmg = bullet.instVars?.damage || 10;
+                        // Send damage to remote player
+                        NM.attackPlayer(id, baseDmg);
+
+                        // Show damage text on their sprite
+                        const DamageEffects = globalThis.DamageEffects;
+                        if (DamageEffects) {
+                            try {
+                                const runtime2 = getRuntime();
+                                const text = runtime2.objects.DamageText?.createInstance("Game", rp.sprite.x, rp.sprite.y - 30);
+                                if (text) {
+                                    text.text = String(Math.round(baseDmg));
+                                    text.colorRgb = [1, 0.5, 0];  // Orange for PvP
+                                    text.opacity = 1;
+                                    try {
+                                        text.behaviors.Tween.startTween("y", rp.sprite.y - 130, 1.0, "easeoutquad");
+                                        text.behaviors.Tween.startTween("opacity", 0, 1.0, "easeoutquad");
+                                    } catch (e) {}
+                                    setTimeout(() => { try { if (text?.runtime) text.destroy(); } catch (e) {} }, 1100);
+                                }
+                            } catch (e) {}
+                        }
+
+                        // Flash remote player sprite white
+                        try {
+                            rp.sprite.colorRgb = [1, 1, 1];
+                            setTimeout(() => {
+                                try { if (rp.sprite?.runtime) rp.sprite.colorRgb = [1, 0.4, 0.4]; } catch (e) {}
+                            }, 100);
+                        } catch (e) {}
+
+                        if (!bullet.instVars?.piercing) {
+                            bullet.destroy();
+                            bulletHit = true;
+                            break;
+                        }
                     }
                 }
             }
