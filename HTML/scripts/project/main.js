@@ -33,6 +33,7 @@ import * as StatsDisplay from "./StatsDisplay.js";
 import * as MetaUI from "./MetaUI.js";
 import * as i18n from "./i18n.js";
 import * as NetworkManager from "./NetworkManager.js";
+import * as AuthUI from "./AuthUI.js";
 
 // Expose modules to globalThis for debugging/event sheets
 // Detect language on load
@@ -42,6 +43,7 @@ globalThis.GameConfig = GameConfig;
 globalThis.MetaUI = MetaUI;
 globalThis.i18n = i18n;
 globalThis.NetworkManager = NetworkManager;
+globalThis.AuthUI = AuthUI;
 globalThis.GameState = GameState;
 globalThis.InputManager = InputManager;
 globalThis.PlayerController = PlayerController;
@@ -355,20 +357,37 @@ function initLobby(runtime) {
 
     LobbyManager.init(runtime);
 
-    // Show Meta UI lobby buttons (HTML overlay)
-    setTimeout(() => {
-        try {
-            MetaUI.init();
-            MetaUI.showLobbyButtons();
-            // Add leaderboard button
-            addLeaderboardButton();
-            console.log("[MAIN] MetaUI lobby buttons shown");
-        } catch (e) {
-            console.error("[MAIN] MetaUI init failed:", e);
-        }
-    }, 300);
+    // Init auth and show login if needed
+    AuthUI.init();
 
-    // Connect to multiplayer server
+    AuthUI.showAuthPage((username) => {
+        console.log("[MAIN] Logged in as:", username);
+
+        // Show Meta UI lobby buttons
+        setTimeout(() => {
+            try {
+                MetaUI.init();
+                MetaUI.showLobbyButtons();
+                addLeaderboardButton();
+                // Show chat panel on left
+                AuthUI.showChat();
+                console.log("[MAIN] Lobby UI ready");
+            } catch (e) {
+                console.error("[MAIN] MetaUI init failed:", e);
+            }
+        }, 300);
+
+        // Connect to multiplayer server
+        NetworkManager.connect().then(() => {
+            console.log("[MAIN] Connected to multiplayer server");
+            // Setup chat after connection
+            setTimeout(() => AuthUI.showChat(), 500);
+        }).catch(() => {
+            console.log("[MAIN] Offline mode");
+        });
+    });
+
+    // Connect to multiplayer server (also try before auth completes)
     NetworkManager.connect().then(() => {
         console.log("[MAIN] Connected to multiplayer server");
     }).catch(() => {
@@ -416,8 +435,9 @@ function initHeroes(runtime) {
 function initGame(runtime) {
     console.log("[MAIN] Initializing Game...");
 
-    // Hide lobby UI buttons
+    // Hide lobby UI buttons + chat
     MetaUI.hideAll();
+    AuthUI.hideChat();
 
     // Remove menu listeners when entering game
     removeAllLayoutListeners();
@@ -557,10 +577,11 @@ function initGame(runtime) {
     // Initialize MetaUI
     MetaUI.init(runtime);
 
-    // Join multiplayer room
+    // Join multiplayer room with username
     try {
         const heroId = SaveManager.getSelectedHeroId();
-        NetworkManager.joinGame(heroId, "Player_" + Math.random().toString(36).substr(2, 4));
+        const username = AuthUI.getUsername() || "Player_" + Math.random().toString(36).substr(2, 4);
+        NetworkManager.joinGame(heroId, username);
     } catch (e) {
         console.log("[MAIN] Multiplayer join failed, playing offline");
     }

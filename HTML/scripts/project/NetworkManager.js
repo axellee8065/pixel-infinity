@@ -287,6 +287,7 @@ export function getRemotePlayers() { return remotePlayers; }
 export function isConnected() { return connected; }
 export function getMyId() { return myId; }
 export function getPlayerCount() { return remotePlayers.size + (connected ? 1 : 0); }
+export function _getSocket() { return socket; }
 
 // ============================================
 // LEADERBOARD

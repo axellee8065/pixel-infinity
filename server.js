@@ -8,6 +8,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { createHash, randomBytes } from "crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,6 +24,80 @@ const io = new Server(server, {
 // Serve static game files
 app.use(express.static(join(__dirname, "HTML")));
 app.use(express.json());
+
+// ============================================
+// AUTH SYSTEM (in-memory, persists until restart)
+// ============================================
+const users = new Map(); // username -> { username, passwordHash, salt, createdAt, stats }
+const sessions = new Map(); // token -> { username, createdAt }
+
+function hashPassword(password, salt) {
+    return createHash("sha256").update(password + salt).digest("hex");
+}
+
+// Register
+app.post("/api/register", (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: "이름과 비밀번호를 입력하세요" });
+    if (username.length < 2 || username.length > 16) return res.status(400).json({ error: "이름은 2~16자" });
+    if (password.length < 4) return res.status(400).json({ error: "비밀번호 4자 이상" });
+    if (users.has(username.toLowerCase())) return res.status(409).json({ error: "이미 사용 중인 이름입니다" });
+
+    const salt = randomBytes(16).toString("hex");
+    const passwordHash = hashPassword(password, salt);
+    users.set(username.toLowerCase(), {
+        username,
+        passwordHash, salt,
+        createdAt: Date.now(),
+        stats: { totalKills: 0, totalGames: 0, bestKills: 0, bestLevel: 0 }
+    });
+
+    const token = randomBytes(32).toString("hex");
+    sessions.set(token, { username, createdAt: Date.now() });
+
+    console.log("[Auth] Registered:", username);
+    res.json({ success: true, token, username });
+});
+
+// Login
+app.post("/api/login", (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: "이름과 비밀번호를 입력하세요" });
+
+    const user = users.get(username.toLowerCase());
+    if (!user) return res.status(401).json({ error: "계정을 찾을 수 없습니다" });
+
+    const hash = hashPassword(password, user.salt);
+    if (hash !== user.passwordHash) return res.status(401).json({ error: "비밀번호가 틀립니다" });
+
+    const token = randomBytes(32).toString("hex");
+    sessions.set(token, { username: user.username, createdAt: Date.now() });
+
+    console.log("[Auth] Login:", user.username);
+    res.json({ success: true, token, username: user.username });
+});
+
+// Get profile
+app.get("/api/profile", (req, res) => {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const session = sessions.get(token);
+    if (!session) return res.status(401).json({ error: "로그인이 필요합니다" });
+
+    const user = users.get(session.username.toLowerCase());
+    if (!user) return res.status(404).json({ error: "유저를 찾을 수 없습니다" });
+
+    res.json({
+        username: user.username,
+        stats: user.stats,
+        createdAt: user.createdAt
+    });
+});
+
+// ============================================
+// CHAT SYSTEM
+// ============================================
+const chatHistory = []; // [{ username, message, timestamp }]
+const MAX_CHAT_HISTORY = 200;
 
 // ============================================
 // GAME ROOMS
@@ -220,11 +295,38 @@ io.on("connection", (socket) => {
     // Player submits score
     socket.on("submit_score", (data) => {
         addScore(data);
-        // Broadcast updated leaderboard to all
+        // Update user stats if logged in
+        if (data.username) {
+            const user = users.get(data.username.toLowerCase());
+            if (user) {
+                user.stats.totalKills += data.kills || 0;
+                user.stats.totalGames++;
+                user.stats.bestKills = Math.max(user.stats.bestKills, data.kills || 0);
+                user.stats.bestLevel = Math.max(user.stats.bestLevel, data.level || 0);
+            }
+        }
         io.emit("leaderboard_update", {
             daily: leaderboard.daily.slice(0, 10),
             weekly: leaderboard.weekly.slice(0, 10)
         });
+    });
+
+    // Chat message (global lobby chat)
+    socket.on("chat_message", (data) => {
+        if (!data.message || !data.username) return;
+        const msg = {
+            username: data.username.substring(0, 16),
+            message: data.message.substring(0, 200),
+            timestamp: Date.now()
+        };
+        chatHistory.push(msg);
+        if (chatHistory.length > MAX_CHAT_HISTORY) chatHistory.shift();
+        io.emit("chat_message", msg);
+    });
+
+    // Request chat history
+    socket.on("chat_history", () => {
+        socket.emit("chat_history", chatHistory.slice(-50));
     });
 
     // Chat/emote
