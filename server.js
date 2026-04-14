@@ -38,10 +38,10 @@ function hashPassword(password, salt) {
 // Register
 app.post("/api/register", (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: "이름과 비밀번호를 입력하세요" });
-    if (username.length < 2 || username.length > 16) return res.status(400).json({ error: "이름은 2~16자" });
-    if (password.length < 4) return res.status(400).json({ error: "비밀번호 4자 이상" });
-    if (users.has(username.toLowerCase())) return res.status(409).json({ error: "이미 사용 중인 이름입니다" });
+    if (!username || !password) return res.status(400).json({ error: "Username and password required" });
+    if (username.length < 2 || username.length > 16) return res.status(400).json({ error: "Username must be 2-16 characters" });
+    if (password.length < 4) return res.status(400).json({ error: "Password must be 4+ characters" });
+    if (users.has(username.toLowerCase())) return res.status(409).json({ error: "Username already taken" });
 
     const salt = randomBytes(16).toString("hex");
     const passwordHash = hashPassword(password, salt);
@@ -62,13 +62,13 @@ app.post("/api/register", (req, res) => {
 // Login
 app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: "이름과 비밀번호를 입력하세요" });
+    if (!username || !password) return res.status(400).json({ error: "Username and password required" });
 
     const user = users.get(username.toLowerCase());
-    if (!user) return res.status(401).json({ error: "계정을 찾을 수 없습니다" });
+    if (!user) return res.status(401).json({ error: "Account not found" });
 
     const hash = hashPassword(password, user.salt);
-    if (hash !== user.passwordHash) return res.status(401).json({ error: "비밀번호가 틀립니다" });
+    if (hash !== user.passwordHash) return res.status(401).json({ error: "Wrong password" });
 
     const token = randomBytes(32).toString("hex");
     sessions.set(token, { username: user.username, createdAt: Date.now() });
@@ -81,10 +81,10 @@ app.post("/api/login", (req, res) => {
 app.get("/api/profile", (req, res) => {
     const token = req.headers.authorization?.replace("Bearer ", "");
     const session = sessions.get(token);
-    if (!session) return res.status(401).json({ error: "로그인이 필요합니다" });
+    if (!session) return res.status(401).json({ error: "Login required" });
 
     const user = users.get(session.username.toLowerCase());
-    if (!user) return res.status(404).json({ error: "유저를 찾을 수 없습니다" });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     res.json({
         username: user.username,
