@@ -3,7 +3,6 @@
 // ============================================
 
 import * as Config from "./GameConfig.js";
-import * as SaveManager from "./SaveManager.js";
 
 // Selected hero stats (set during game init)
 let selectedHeroStats = null;
@@ -135,7 +134,8 @@ export function resetState() {
 
     // Apply permanent PowerUp bonuses from meta progression
     try {
-        const bonuses = SaveManager.getAllPowerUpBonuses();
+        const SM = globalThis.SaveManager;
+        const bonuses = SM ? SM.getAllPowerUpBonuses() : {};
         if (bonuses.damage > 0) state.playerDamage *= (1 + bonuses.damage / 100);
         if (bonuses.health > 0) {
             state.playerMaxHealth += bonuses.health;
