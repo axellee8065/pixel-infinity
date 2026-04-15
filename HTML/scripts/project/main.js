@@ -598,8 +598,11 @@ function initGame(runtime) {
 function addLeaderboardButton() {
     const bar = document.getElementById("pi-buttons");
     if (!bar) return;
+    // Prevent duplicate
+    if (document.getElementById("pi-lb-btn")) return;
     const isKo = i18n.getLanguage() === "ko";
     const btn = document.createElement("button");
+    btn.id = "pi-lb-btn";
     btn.textContent = isKo ? "🏅 리더보드" : "🏅 Ranking";
     btn.style.cssText = "background:rgba(243,156,18,0.9);";
     btn.addEventListener("click", (e) => {
