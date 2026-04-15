@@ -1082,26 +1082,23 @@ export function handleLobbyClick(e) {
         return;
     }
 
-    // Settings buttons also trigger HTML Meta UI (backup for C3 buttons)
+    // Settings buttons - original sound controls only
     const settingsBtn = runtime.objects.buttonsettings?.getFirstInstance();
     if (settingsBtn && isPointInSprite(layerX, layerY, settingsBtn)) {
         runtime.callFunction("playAudio", "Pickup6", 0, 10);
-        const MetaUI = globalThis.MetaUI;
-        if (MetaUI) MetaUI.showPowerUpShop();
+        console.log("[LobbyManager] Settings clicked");
         return;
     }
     const settingsBtn2 = runtime.objects.buttonsettings2?.getFirstInstance();
     if (settingsBtn2 && isPointInSprite(layerX, layerY, settingsBtn2)) {
         runtime.callFunction("playAudio", "confirm", 0, 10);
-        const MetaUI = globalThis.MetaUI;
-        if (MetaUI) MetaUI.showAchievements();
+        console.log("[LobbyManager] Settings2 clicked");
         return;
     }
     const settingsBtn3 = runtime.objects.buttonsettings3?.getFirstInstance();
     if (settingsBtn3 && isPointInSprite(layerX, layerY, settingsBtn3)) {
         runtime.callFunction("playAudio", "confirm", 0, 10);
-        const MetaUI = globalThis.MetaUI;
-        if (MetaUI) MetaUI.showDailyReward();
+        console.log("[LobbyManager] Settings3 clicked");
         return;
     }
 
