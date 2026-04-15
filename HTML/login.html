@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pixel Infinity - Sign In</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#fff}
+.box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+    border-radius:20px;padding:40px 30px;width:88vw;max-width:360px;text-align:center}
+h1{color:#f1c40f;font-size:28px;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:22px}
+#err{color:#e74c3c;font-size:13px;min-height:20px;margin-bottom:10px}
+input{display:block;width:100%;padding:14px 16px;margin-bottom:12px;border-radius:12px;
+    border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);
+    color:#fff;font-size:16px;outline:none}
+input:focus{border-color:#3498db;background:rgba(255,255,255,.12)}
+input::placeholder{color:#666}
+.btns{display:flex;gap:10px;margin:18px 0 14px}
+.btns button{flex:1;padding:14px;border:none;border-radius:12px;font-size:16px;
+    font-weight:bold;cursor:pointer;transition:opacity .2s}
+.btns button:active{opacity:.7}
+.bl{background:#3498db;color:#fff}
+.br{background:#2ecc71;color:#fff}
+.bg{display:block;width:100%;padding:12px;border:1px solid rgba(255,255,255,.2);
+    border-radius:12px;background:transparent;color:#aaa;cursor:pointer;font-size:14px;
+    margin-top:4px}
+.bg:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+.loading{opacity:.5;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="box">
+    <h1>⚔️ Pixel Infinity</h1>
+    <div class="sub">Sign in to play online</div>
+    <div id="err"></div>
+    <input id="uname" type="text" placeholder="Username (2-16 chars)" maxlength="16" autofocus>
+    <input id="upass" type="password" placeholder="Password (4+ chars)" maxlength="32">
+    <div class="btns">
+        <button class="bl" id="btnLogin">Login</button>
+        <button class="br" id="btnReg">Register</button>
+    </div>
+    <button class="bg" id="btnGuest">Play as Guest</button>
+</div>
+
+<script>
+const err = document.getElementById('err');
+const uname = document.getElementById('uname');
+const upass = document.getElementById('upass');
+
+// Check if already logged in
+const saved = localStorage.getItem('pi_auth');
+if (saved) {
+    try {
+        const d = JSON.parse(saved);
+        if (d && d.username) {
+            window.location.href = '/';
+        }
+    } catch(e) {}
+}
+
+document.getElementById('btnLogin').onclick = async function() {
+    const n = uname.value.trim(), p = upass.value;
+    if (!n || !p) { err.textContent = 'Fill all fields'; return; }
+    err.textContent = 'Logging in...';
+    this.classList.add('loading');
+    try {
+        const r = await fetch('/api/login', {
+            method: 'POST', cache: 'no-store',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({username:n, password:p})
+        });
+        const d = await r.json();
+        if (!r.ok) { err.textContent = d.error || 'Login failed'; this.classList.remove('loading'); return; }
+        localStorage.setItem('pi_auth', JSON.stringify({username:d.username, token:d.token}));
+        window.location.href = '/';
+    } catch(e) {
+        err.textContent = 'Connection error: ' + e.message;
+        this.classList.remove('loading');
+    }
+};
+
+document.getElementById('btnReg').onclick = async function() {
+    const n = uname.value.trim(), p = upass.value;
+    if (!n || !p) { err.textContent = 'Fill all fields'; return; }
+    if (n.length < 2) { err.textContent = 'Username: 2+ characters'; return; }
+    if (p.length < 4) { err.textContent = 'Password: 4+ characters'; return; }
+    err.textContent = 'Creating account...';
+    this.classList.add('loading');
+    try {
+        const r = await fetch('/api/register', {
+            method: 'POST', cache: 'no-store',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({username:n, password:p})
+        });
+        const d = await r.json();
+        if (!r.ok) { err.textContent = d.error || 'Register failed'; this.classList.remove('loading'); return; }
+        localStorage.setItem('pi_auth', JSON.stringify({username:d.username, token:d.token}));
+        window.location.href = '/';
+    } catch(e) {
+        err.textContent = 'Connection error: ' + e.message;
+        this.classList.remove('loading');
+    }
+};
+
+document.getElementById('btnGuest').onclick = function() {
+    const name = 'Guest_' + Math.random().toString(36).substr(2,5);
+    localStorage.setItem('pi_auth', JSON.stringify({username:name, token:'guest'}));
+    window.location.href = '/';
+};
+
+upass.onkeydown = function(e) {
+    if (e.key === 'Enter') document.getElementById('btnLogin').click();
+};
+</script>
+</body>
+</html>

@@ -85,11 +85,9 @@ export function showLobbyButtons() {
     const auth = globalThis.AuthUI;
     const username = auth?.getUsername() || "Guest";
     const profileBtn = mkBtn("👤", username, username, "rgba(100,100,100,0.9)", () => {
-        if (confirm(lang() === "ko"
-            ? `${username}\n\nLogout and return to login screen?`
-            : `${username}\n\nLogout and return to login screen?`)) {
+        if (confirm(`${username}\n\nLogout?`)) {
             if (auth) auth.logout();
-            location.reload();
+            window.location.href = '/login.html';
         }
     });
 

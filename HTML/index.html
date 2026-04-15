@@ -31,6 +31,15 @@ if (location.protocol.substr(0, 4) === "file")
 {
 	alert("Web exports won't work until you upload them. (When running on the file: protocol, browsers block many features from working for security reasons.)");
 }
+// Redirect to login page if not authenticated
+try {
+	var auth = localStorage.getItem('pi_auth');
+	if (!auth || !JSON.parse(auth).username) {
+		window.location.href = '/login.html';
+	}
+} catch(e) {
+	window.location.href = '/login.html';
+}
 </script>
 	
 	<noscript>

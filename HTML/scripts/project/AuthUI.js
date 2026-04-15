@@ -26,7 +26,9 @@ export function logout() { currentUser = null; localStorage.removeItem("pi_auth"
 // ============================================
 export function showAuthPage(onComplete) {
     if (isLoggedIn()) { onComplete(currentUser.username); return; }
-    authCallback = onComplete;
+    // Not logged in — redirect to login page
+    window.location.href = '/login.html';
+    return;
 
     // Globals for inline onclick
     window._piDoLogin = async function() {
