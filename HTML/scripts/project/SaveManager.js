@@ -51,8 +51,22 @@ const defaultSaveData = {
 // Current save data in memory
 let saveData = null;
 
-// Initialize save system - load or create default
+// Initialize save system - load or create default, per-user
 export function init() {
+    // Check if current user matches saved user
+    try {
+        const auth = JSON.parse(localStorage.getItem("pi_auth") || "{}");
+        const currentUser = auth.username || null;
+        const savedUser = localStorage.getItem("VSURVIVORS_USER");
+
+        if (currentUser && currentUser !== savedUser) {
+            // Different user — reset save data for fresh start
+            console.log("[SaveManager] New user:", currentUser, "(was:", savedUser, ") — resetting save");
+            localStorage.removeItem(SAVE_KEY);
+            localStorage.setItem("VSURVIVORS_USER", currentUser);
+        }
+    } catch (e) {}
+
     loadGame();
     console.log("[SaveManager] Initialized with data:", saveData);
 }
