@@ -97,6 +97,11 @@ function onPointerDown(e) {
         return;
     }
 
+    // PvP attack: click/tap during gameplay to attack nearby remote players
+    if (state.isPlaying && !state.isPaused && !state.isGameOver) {
+        tryPvPAttack(e);
+    }
+
     // Already have active joystick
     if (state.joystickActive) return;
 
@@ -251,5 +256,79 @@ export function handleKeyboardInput() {
 }
 
 
+
+// ============================================
+// PVP CLICK ATTACK
+// ============================================
+let pvpAttackCooldown = 0;
+
+function tryPvPAttack(e) {
+    const NM = globalThis.NetworkManager;
+    if (!NM || !NM.isConnected()) return;
+
+    // Cooldown check (0.5s between attacks)
+    const now = Date.now();
+    if (now - pvpAttackCooldown < 500) return;
+
+    const runtime = getRuntime();
+    const gameLayer = runtime.layout.getLayer("Game");
+    if (!gameLayer) return;
+
+    // Convert click position to game world coordinates
+    const [clickX, clickY] = gameLayer.cssPxToLayer(e.clientX, e.clientY);
+
+    // Check if click is near any remote player
+    const remotePlayers = NM.getRemotePlayers();
+    for (const [id, rp] of remotePlayers) {
+        if (!rp.isAlive || !rp.sprite) continue;
+
+        const dx = clickX - rp.sprite.x;
+        const dy = clickY - rp.sprite.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 150) {  // Click within 150px of remote player
+            pvpAttackCooldown = now;
+
+            // Calculate damage based on player stats
+            const dmg = state.playerDamage || 20;
+
+            // Send attack
+            NM.attackPlayer(id, dmg);
+
+            // Fire a bullet toward the target
+            try {
+                const playerPos = PlayerController.getPlayerPosition();
+                const bullet = runtime.objects.Bullet?.createInstance("Game", playerPos.x, playerPos.y);
+                if (bullet) {
+                    const bdx = rp.sprite.x - playerPos.x;
+                    const bdy = rp.sprite.y - playerPos.y;
+                    const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
+                    bullet.instVars.damage = dmg;
+                    bullet.instVars.dirX = bdx / bdist;
+                    bullet.instVars.dirY = bdy / bdist;
+                    bullet.instVars.speed = 2000;
+                    // Bullet will be handled by existing projectile system
+                }
+            } catch (err) {}
+
+            // Visual feedback — flash target white
+            try {
+                rp.sprite.colorRgb = [1, 1, 1];
+                setTimeout(() => {
+                    try { if (rp.sprite?.runtime) rp.sprite.colorRgb = [1, 0.4, 0.4]; } catch (err) {}
+                }, 80);
+            } catch (err) {}
+
+            // Play attack sound
+            try { runtime.callFunction("playAudio", "Hit", 0, 10); } catch (err) {}
+
+            console.log("[InputManager] PvP attack on", id, "damage:", dmg);
+            return;  // Only attack one player per click
+        }
+    }
+}
+
+// Export for game loop cooldown reset
+export function updatePvPCooldown() {}
 
 console.log("[InputManager] Module loaded!");
