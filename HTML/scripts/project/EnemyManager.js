@@ -1039,6 +1039,29 @@ export function killEnemy(enemy) {
     // Trigger Regen Tome (heal on kill)
     TomeSystem.onEnemyKilled();
 
+    // Enhance stone drop (3% chance, higher for tough enemies)
+    const stoneChance = (enemy.instVars.xpValue >= 60) ? 8 : (enemy.instVars.xpValue >= 40) ? 5 : 3;
+    if (Math.random() * 100 < stoneChance) {
+        try {
+            const PvPGear = globalThis.PvPGearSystem;
+            if (PvPGear) {
+                PvPGear.addEnhanceStones(1);
+                // Show drop text
+                const rt = getRuntime();
+                const txt = rt.objects.DamageText?.createInstance("Game", enemy.x, enemy.y - 30);
+                if (txt) {
+                    txt.text = "💎+1";
+                    txt.colorRgb = [0.4, 0.8, 1];
+                    try {
+                        txt.behaviors.Tween.startTween("y", enemy.y - 130, 1.0, "easeoutquad");
+                        txt.behaviors.Tween.startTween("opacity", 0, 1.0, "easeoutquad");
+                    } catch(e) {}
+                    setTimeout(() => { try { if (txt?.runtime) txt.destroy(); } catch(e) {} }, 1100);
+                }
+            }
+        } catch(e) {}
+    }
+
     // Kill combo
     addCombo();
 

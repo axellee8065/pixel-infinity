@@ -91,11 +91,23 @@ function initSocket(url) {
     });
 
     socket.on("take_damage", (data) => {
-        // Another player hit us
+        // Another player hit us — apply PvP defense gear
         const PC = globalThis.PlayerController;
         const state = globalThis.GameState?.state;
         if (PC && state) {
-            PC.damagePlayer(data.damage);
+            let dmg = data.damage;
+            // Apply PvP Shield defense
+            const PG = globalThis.PvPGearSystem;
+            if (PG) {
+                const fx = PG.getEquippedEffects();
+                if (fx.pvpDefense) dmg *= (1 - fx.pvpDefense / 100);
+                // Reflect damage (Thorn Armor)
+                if (fx.reflect && data.fromId) {
+                    const reflectDmg = data.damage * fx.reflect / 100;
+                    attackPlayer(data.fromId, reflectDmg);
+                }
+            }
+            PC.damagePlayer(dmg);
             // Show "PvP!" text
             const pos = PC.getPlayerPosition();
             try {
@@ -173,9 +185,26 @@ export function submitScore(data) {
     }).catch(() => {});
 }
 
+let pvpHitCount = {};  // targetId -> hit count (for stun tracking)
+let firstStrikeUsed = {};  // targetId -> bool
+
 export function attackPlayer(targetId, damage) {
     if (!socket || !connected) return;
-    socket.emit("attack_player", { targetId, damage });
+
+    // Apply PvP Gear offensive effects
+    const PG = globalThis.PvPGearSystem;
+    if (PG) {
+        const fx = PG.getEquippedEffects();
+        // Hunter's Mark: +X% PvP damage
+        if (fx.pvpDamage) damage *= (1 + fx.pvpDamage / 100);
+        // Assassin Blade: first hit bonus
+        if (fx.firstStrike && !firstStrikeUsed[targetId]) {
+            damage *= (1 + fx.firstStrike / 100);
+            firstStrikeUsed[targetId] = true;
+        }
+    }
+
+    socket.emit("attack_player", { targetId, damage: Math.round(damage) });
 }
 
 export function notifyDeath() {

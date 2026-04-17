@@ -109,6 +109,10 @@ export function showLobbyButtons() {
         try { showPowerUpShop(); } catch (err) { console.error("[MetaUI] PowerUp error:", err); }
     });
 
+    const gearBtn = mkBtn("⚔️", "PvP 장비", "PvP Gear", "rgba(230,126,34,0.9)", () => {
+        try { showPvPGearShop(); } catch (err) { console.error("[MetaUI] PvP Gear error:", err); }
+    });
+
     const achBtn = mkBtn("🏆", "업적", "Achieve", "rgba(155,89,182,0.9)", () => {
         try { showAchievements(); } catch (err) { console.error("[MetaUI] Ach error:", err); }
     });
@@ -128,6 +132,142 @@ export function showLobbyButtons() {
 
 export function hideLobbyButtons() {
     if (buttonsEl) { buttonsEl.remove(); buttonsEl = null; }
+}
+
+// ============================================
+// PVP GEAR SHOP + ENHANCE
+// ============================================
+export function showPvPGearShop() {
+    closePanel();
+    init();
+
+    const sm = SM();
+    if (!sm) return;
+    const PG = globalThis.PvPGearSystem;
+    if (!PG) return;
+
+    const saveData = sm.getSaveData();
+    PG.initGearData(saveData);
+    const gold = sm.getGold();
+    const stones = saveData.enhanceStones || 0;
+
+    const p = openPanel("⚔️ PvP Gear Shop");
+
+    // Stone count
+    const stoneDiv = document.createElement("div");
+    stoneDiv.style.cssText = "text-align:center;margin-bottom:10px;color:#4fc3f7;font-size:13px;";
+    stoneDiv.textContent = "💎 Enhance Stones: " + stones;
+    p.appendChild(stoneDiv);
+
+    const allGears = PG.getAllGearDefs();
+    for (const [id, def] of Object.entries(allGears)) {
+        const owned = !!saveData.pvpGear[id];
+        const level = owned ? (saveData.pvpGear[id].level || 0) : -1;
+        const equipped = saveData.pvpGearSlots.includes(id);
+        const effectVal = owned ? def.baseValue + def.perLevel * level : def.baseValue;
+
+        const row = document.createElement("div");
+        row.className = "pi-row";
+        row.style.flexWrap = "wrap";
+
+        const nameColor = owned ? (level >= 7 ? "#e74c3c" : level >= 4 ? "#f1c40f" : "#fff") : "#666";
+        const levelText = owned ? (level > 0 ? " +" + level : " +0") : "";
+        const equippedBadge = equipped ? " <span style='color:#2ecc71;font-size:10px'>EQUIPPED</span>" : "";
+
+        row.innerHTML = `<div style="flex:1">
+            <div><b style="color:${nameColor}">${def.icon} ${def.name}${levelText}</b>${equippedBadge}</div>
+            <div style="font-size:11px;color:#aaa">${def.desc} (${effectVal}%)</div>
+        </div>`;
+
+        const btnDiv = document.createElement("div");
+        btnDiv.style.cssText = "display:flex;gap:4px;margin-top:4px;width:100%;";
+
+        if (!owned) {
+            // Buy button
+            const buyBtn = document.createElement("button");
+            buyBtn.className = "meta-btn meta-btn-buy";
+            buyBtn.textContent = def.unlockCost + "G";
+            buyBtn.disabled = gold < def.unlockCost;
+            buyBtn.style.opacity = gold >= def.unlockCost ? "1" : "0.5";
+            buyBtn.addEventListener("click", () => {
+                PG.buyGear(id);
+                refreshGold();
+                closePanel();
+                showPvPGearShop();
+            });
+            btnDiv.appendChild(buyBtn);
+        } else {
+            // Equip button
+            const equipBtn = document.createElement("button");
+            equipBtn.className = "meta-btn";
+            equipBtn.style.cssText = equipped ? "background:#555;color:#999;" : "background:#2ecc71;color:#fff;";
+            equipBtn.textContent = equipped ? "Unequip" : "Equip";
+            equipBtn.addEventListener("click", () => {
+                if (equipped) {
+                    const slot = saveData.pvpGearSlots.indexOf(id);
+                    PG.unequipGear(slot);
+                } else {
+                    // Find first empty slot
+                    let slot = saveData.pvpGearSlots.indexOf(null);
+                    if (slot === -1) slot = 0;  // Replace first slot if all full
+                    PG.equipGear(id, slot);
+                }
+                closePanel();
+                showPvPGearShop();
+            });
+            btnDiv.appendChild(equipBtn);
+
+            // Enhance button
+            if (level < 10) {
+                const rate = PG.getEnhanceRate(level);
+                const cost = PG.getStoneCost(level);
+                const canEnhance = stones >= cost;
+                const dangerZone = level >= 4;  // Next level is 5+ = can destroy
+
+                const enhBtn = document.createElement("button");
+                enhBtn.className = "meta-btn";
+                enhBtn.style.cssText = dangerZone
+                    ? "background:#e74c3c;color:#fff;"
+                    : "background:#f39c12;color:#fff;";
+                enhBtn.textContent = "+" + (level+1) + " (" + rate + "%) 💎" + cost;
+                enhBtn.disabled = !canEnhance;
+                enhBtn.style.opacity = canEnhance ? "1" : "0.5";
+                enhBtn.addEventListener("click", () => {
+                    let msg = "Enhance " + def.name + " to +" + (level+1) + "?\n\n";
+                    msg += "Success rate: " + rate + "%\n";
+                    msg += "Cost: " + cost + " stones\n";
+                    if (dangerZone) msg += "\n⚠️ WARNING: Item may be DESTROYED on failure!";
+                    if (!confirm(msg)) return;
+
+                    const result = PG.tryEnhance(id);
+                    if (result.success) {
+                        alert("✅ SUCCESS! " + def.name + " is now +" + result.level + "!");
+                    } else if (result.destroyed) {
+                        alert("💥 DESTROYED! " + def.name + " has been lost forever...");
+                    } else {
+                        alert("❌ FAILED. " + def.name + " remains +" + level);
+                    }
+                    closePanel();
+                    showPvPGearShop();
+                });
+                btnDiv.appendChild(enhBtn);
+            } else {
+                const maxBtn = document.createElement("button");
+                maxBtn.className = "meta-btn meta-btn-max";
+                maxBtn.textContent = "MAX +10 ✨";
+                btnDiv.appendChild(maxBtn);
+            }
+        }
+
+        row.appendChild(btnDiv);
+        p.appendChild(row);
+    }
+
+    // Gold display
+    const goldDiv = document.createElement("div");
+    goldDiv.className = "pi-gold";
+    goldDiv.textContent = "Gold: " + gold + "G | 💎 Stones: " + stones;
+    p.appendChild(goldDiv);
 }
 
 // ============================================

@@ -34,6 +34,7 @@ import * as MetaUI from "./MetaUI.js";
 import * as i18n from "./i18n.js";
 import * as NetworkManager from "./NetworkManager.js";
 import * as AuthUI from "./AuthUI.js";
+import * as PvPGearSystem from "./PvPGearSystem.js";
 
 // Expose modules to globalThis for debugging/event sheets
 // Detect language on load
@@ -44,6 +45,7 @@ globalThis.MetaUI = MetaUI;
 globalThis.i18n = i18n;
 globalThis.NetworkManager = NetworkManager;
 globalThis.AuthUI = AuthUI;
+globalThis.PvPGearSystem = PvPGearSystem;
 globalThis.GameState = GameState;
 globalThis.InputManager = InputManager;
 globalThis.PlayerController = PlayerController;
