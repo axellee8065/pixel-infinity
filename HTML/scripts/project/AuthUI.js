@@ -160,6 +160,153 @@ function addMsg(user,msg,ts) {
 
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 
-export function hideChat() { if(chatEl){chatEl.remove();chatEl=null;} }
+export function hideChat() { if(chatEl){chatEl.remove();chatEl=null;} hideStats(); }
+
+// ============================================
+// STATS + RANK PANEL (below chat)
+// ============================================
+let statsEl = null;
+
+export function showStats() {
+    if (statsEl) return;
+    statsEl = document.createElement("div");
+    statsEl.id = "pi-stats";
+    statsEl.innerHTML = `<style>
+#pi-stats{position:fixed;top:350px;left:10px;width:230px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.15);border-radius:12px;z-index:99997;font-family:sans-serif;overflow:hidden;color:#ccc;font-size:12px}
+.pis-h{color:#f1c40f;font-size:13px;font-weight:700;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
+.pis-body{padding:8px 12px}
+.pis-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.pis-row:last-child{border:0}
+.pis-val{color:#fff;font-weight:700}
+.pis-rank{text-align:center;padding:8px;border-top:1px solid rgba(255,255,255,.1)}
+.pis-rank b{color:#f1c40f;font-size:16px}
+.pis-btn{display:block;width:calc(100% - 16px);margin:6px 8px 8px;padding:8px;background:#3498db;color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
+.pis-btn:active{background:#2980b9}
+#pis-rankings{max-height:180px;overflow-y:auto;padding:4px 12px}
+.pis-rk-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,.05)}
+.pis-rk-row .medal{width:24px;font-weight:700}
+.pis-rk-row .name{flex:1}
+.pis-rk-row .score{color:#f1c40f;font-weight:700;width:50px;text-align:right}
+</style>
+<div class="pis-h">📊 My Stats</div>
+<div class="pis-body" id="pis-body">Loading...</div>
+<div class="pis-rank" id="pis-rank"></div>
+<button class="pis-btn" onclick="window._piToggleRank()">🏅 Rankings</button>
+<div id="pis-rankings" style="display:none"></div>`;
+    document.body.appendChild(statsEl);
+
+    window._piToggleRank = function() {
+        const el = document.getElementById("pis-rankings");
+        if (!el) return;
+        if (el.style.display === "none") {
+            el.style.display = "block";
+            loadRankings();
+        } else {
+            el.style.display = "none";
+        }
+    };
+
+    loadMyStats();
+}
+
+function loadMyStats() {
+    const username = getUsername();
+    if (!username) return;
+
+    // Load from SaveManager (local)
+    const SM = globalThis.SaveManager;
+    const saveData = SM ? SM.getSaveData() : {};
+
+    const totalKills = saveData.totalKills || 0;
+    const totalTime = saveData.totalPlayTime || 0;
+    const mins = Math.floor(totalTime / 60);
+    const hrs = Math.floor(mins / 60);
+    const highScore = saveData.highScore || 0;
+
+    const body = document.getElementById("pis-body");
+    if (!body) return;
+
+    body.innerHTML = `
+        <div class="pis-row"><span>🎮 Total Games</span><span class="pis-val" id="pis-games">-</span></div>
+        <div class="pis-row"><span>⏱ Play Time</span><span class="pis-val">${hrs > 0 ? hrs+"h "+mins%60+"m" : mins+"m"}</span></div>
+        <div class="pis-row"><span>💀 Monsters Killed</span><span class="pis-val">${totalKills.toLocaleString()}</span></div>
+        <div class="pis-row"><span>⚔️ PvP Kills</span><span class="pis-val" id="pis-pvp">-</span></div>
+        <div class="pis-row"><span>🏆 Best Kills/Run</span><span class="pis-val">${highScore}</span></div>
+    `;
+
+    // Also fetch server stats (has pvpKills and totalGames)
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/stats/" + encodeURIComponent(username), true);
+    xhr.onload = function() {
+        try {
+            var d = JSON.parse(xhr.responseText);
+            var s = d.stats || {};
+            var gamesEl = document.getElementById("pis-games");
+            var pvpEl = document.getElementById("pis-pvp");
+            if (gamesEl) gamesEl.textContent = s.totalGames || 0;
+            if (pvpEl) pvpEl.textContent = s.pvpKills || 0;
+
+            // Show rank
+            loadMyRank(username);
+        } catch(e) {}
+    };
+    xhr.send();
+}
+
+function loadMyRank(username) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/rankings", true);
+    xhr.onload = function() {
+        try {
+            var d = JSON.parse(xhr.responseText);
+            var rankings = d.rankings || [];
+            var myRank = -1;
+            for (var i = 0; i < rankings.length; i++) {
+                if (rankings[i].username.toLowerCase() === username.toLowerCase()) {
+                    myRank = i + 1; break;
+                }
+            }
+            var el = document.getElementById("pis-rank");
+            if (el) {
+                if (myRank > 0) {
+                    var medal = myRank === 1 ? "🥇" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "#" + myRank;
+                    el.innerHTML = "My Rank: <b>" + medal + "</b> / " + rankings.length + " players";
+                } else {
+                    el.innerHTML = "Play a game to get ranked!";
+                }
+            }
+        } catch(e) {}
+    };
+    xhr.send();
+}
+
+function loadRankings() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/rankings", true);
+    xhr.onload = function() {
+        try {
+            var d = JSON.parse(xhr.responseText);
+            var rankings = d.rankings || [];
+            var el = document.getElementById("pis-rankings");
+            if (!el) return;
+            if (!rankings.length) { el.innerHTML = "<div style='text-align:center;color:#666;padding:12px'>No players yet</div>"; return; }
+            var html = "";
+            for (var i = 0; i < Math.min(rankings.length, 20); i++) {
+                var r = rankings[i];
+                var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#"+(i+1);
+                var isMe = r.username.toLowerCase() === (getUsername()||"").toLowerCase();
+                html += '<div class="pis-rk-row" style="' + (isMe?"background:rgba(52,152,219,.15);border-radius:4px":"") + '">';
+                html += '<span class="medal">' + medal + '</span>';
+                html += '<span class="name">' + esc(r.username) + '</span>';
+                html += '<span class="score">' + (r.totalKills||0) + 'K</span>';
+                html += '</div>';
+            }
+            el.innerHTML = html;
+        } catch(e) {}
+    };
+    xhr.send();
+}
+
+function hideStats() { if(statsEl){statsEl.remove();statsEl=null;} delete window._piToggleRank; }
 
 console.log("[AuthUI] Module loaded!");

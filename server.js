@@ -54,7 +54,7 @@ app.post("/api/register", (req, res) => {
         username,
         passwordHash, salt,
         createdAt: Date.now(),
-        stats: { totalKills: 0, totalGames: 0, bestKills: 0, bestLevel: 0 }
+        stats: { totalKills: 0, totalGames: 0, bestKills: 0, bestLevel: 0, pvpKills: 0, totalPlayTime: 0 }
     });
 
     const token = randomBytes(32).toString("hex");
@@ -192,6 +192,22 @@ app.post("/api/leaderboard", (req, res) => {
     res.json({ success: true });
 });
 
+// Get user stats by username
+app.get("/api/stats/:username", (req, res) => {
+    const user = users.get(req.params.username.toLowerCase());
+    if (!user) return res.json({ stats: { totalKills: 0, totalGames: 0, bestKills: 0, bestLevel: 0, pvpKills: 0, totalPlayTime: 0 } });
+    res.json({ username: user.username, stats: user.stats });
+});
+
+// Get rankings (all users sorted by totalKills)
+app.get("/api/rankings", (req, res) => {
+    const rankings = Array.from(users.values())
+        .map(u => ({ username: u.username, ...u.stats }))
+        .sort((a, b) => b.totalKills - a.totalKills)
+        .slice(0, 50);
+    res.json({ rankings });
+});
+
 app.get("/api/online", (req, res) => {
     let totalPlayers = 0;
     for (const room of rooms.values()) totalPlayers += room.players.size;
@@ -308,6 +324,8 @@ io.on("connection", (socket) => {
                 user.stats.totalGames++;
                 user.stats.bestKills = Math.max(user.stats.bestKills, data.kills || 0);
                 user.stats.bestLevel = Math.max(user.stats.bestLevel, data.level || 0);
+                user.stats.pvpKills += data.pvpKills || 0;
+                user.stats.totalPlayTime += data.time || 0;
             }
         }
         io.emit("leaderboard_update", {

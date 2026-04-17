@@ -370,7 +370,7 @@ function initLobby(runtime) {
             MetaUI.init();
             MetaUI.showLobbyButtons();
             addLeaderboardButton();
-            AuthUI.showChat();
+            AuthUI.showChat(); AuthUI.showStats();
             console.log("[MAIN] Lobby UI ready");
         } catch (e) {
             console.error("[MAIN] MetaUI init failed:", e);
