@@ -99,17 +99,18 @@ export function showLobbyButtons() {
             m.setLanguage(nl);
             b.textContent = "🌐 " + (nl === "ko" ? "English" : "한국어");
             // Update other button labels
-            if (powerBtn) powerBtn.textContent = "⚡ " + (nl === "ko" ? "강화" : "PowerUp");
+            if (powerBtn) powerBtn.textContent = "⚡ " + (nl === "ko" ? "스탯 업" : "Stat Up");
+            if (gearBtn) gearBtn.textContent = "⚔️ " + (nl === "ko" ? "PvP 장비/강화" : "PvP Gear/Enhance");
             if (achBtn) achBtn.textContent = "🏆 " + (nl === "ko" ? "업적" : "Achieve");
             if (dailyBtn) dailyBtn.textContent = "🎁 " + (nl === "ko" ? "일일보상" : "Daily");
         } catch (err) { console.error("[MetaUI] Lang error:", err); }
     });
 
-    const powerBtn = mkBtn("⚡", "강화", "PowerUp", "rgba(231,76,60,0.9)", () => {
+    const powerBtn = mkBtn("⚡", "스탯 업", "Stat Up", "rgba(231,76,60,0.9)", () => {
         try { showPowerUpShop(); } catch (err) { console.error("[MetaUI] PowerUp error:", err); }
     });
 
-    const gearBtn = mkBtn("⚔️", "PvP 장비", "PvP Gear", "rgba(230,126,34,0.9)", () => {
+    const gearBtn = mkBtn("⚔️", "PvP 장비/강화", "PvP Gear/Enhance", "rgba(230,126,34,0.9)", () => {
         try { showPvPGearShop(); } catch (err) { console.error("[MetaUI] PvP Gear error:", err); }
     });
 
