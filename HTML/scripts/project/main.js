@@ -335,15 +335,17 @@ async function OnBeforeProjectStart(runtime) {
 // ============================================
 function removeAllLayoutListeners() {
     if (lobbyClickHandler) {
-        runtime.removeEventListener("pointerdown", lobbyClickHandler);
+        try { runtime.removeEventListener("pointerdown", lobbyClickHandler); } catch(e) {}
+        try { document.removeEventListener("pointerdown", lobbyClickHandler); } catch(e) {}
         lobbyClickHandler = null;
     }
     if (lobbyPointerMoveHandler) {
-        runtime.removeEventListener("pointermove", lobbyPointerMoveHandler);
+        try { runtime.removeEventListener("pointermove", lobbyPointerMoveHandler); } catch(e) {}
+        try { document.removeEventListener("pointermove", lobbyPointerMoveHandler); } catch(e) {}
         lobbyPointerMoveHandler = null;
     }
     if (heroesClickHandler) {
-        runtime.removeEventListener("pointerdown", heroesClickHandler);
+        try { runtime.removeEventListener("pointerdown", heroesClickHandler); } catch(e) {}
         heroesClickHandler = null;
     }
 }
@@ -406,19 +408,33 @@ function initLobby(runtime) {
         console.log("[MAIN] Offline mode - multiplayer unavailable");
     });
 
-    // Setup click handler for lobby buttons (also handles mobile tooltips)
+    // Setup click handler on document (survives C3 layout transitions)
+    // Remove old first to prevent duplicates
+    if (lobbyClickHandler) document.removeEventListener("pointerdown", lobbyClickHandler);
+    if (lobbyPointerMoveHandler) document.removeEventListener("pointermove", lobbyPointerMoveHandler);
+
     lobbyClickHandler = (e) => {
+        if (currentLayout !== "Lobby") return;
         LobbyManager.handleLobbyClick(e);
     };
-    runtime.addEventListener("pointerdown", lobbyClickHandler);
-
-    // Setup pointer move for item tooltips
     lobbyPointerMoveHandler = (e) => {
+        if (currentLayout !== "Lobby") return;
         LobbyManager.handlePointerMove(e);
     };
-    runtime.addEventListener("pointermove", lobbyPointerMoveHandler);
 
-    console.log("[MAIN] Lobby handlers attached");
+    // Use document level (not runtime) — survives layout changes
+    document.addEventListener("pointerdown", lobbyClickHandler);
+    document.addEventListener("pointermove", lobbyPointerMoveHandler);
+
+    // Also re-register on runtime with delay (belt and suspenders)
+    setTimeout(() => {
+        try {
+            runtime.addEventListener("pointerdown", lobbyClickHandler);
+            runtime.addEventListener("pointermove", lobbyPointerMoveHandler);
+        } catch(e) {}
+    }, 200);
+
+    console.log("[MAIN] Lobby handlers attached (document + runtime)");
 }
 
 // ============================================
