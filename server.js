@@ -311,6 +311,22 @@ io.on("connection", (socket) => {
             id: socket.id,
             killedBy: data.killedBy || "enemies"
         });
+
+        // If killed by another player, reward the killer
+        if (data.killedBy && data.killedBy !== "enemies") {
+            io.to(data.killedBy).emit("pvp_kill_reward", { victimId: socket.id });
+        }
+    });
+
+    // Player reports a PvP kill (client-side detection)
+    socket.on("pvp_kill", (data) => {
+        // Reward the killer
+        socket.emit("pvp_kill_reward", { victimId: data.victimId });
+        // Update killer's stats
+        if (data.username) {
+            const user = users.get(data.username.toLowerCase());
+            if (user) user.stats.pvpKills++;
+        }
     });
 
     // Player submits score

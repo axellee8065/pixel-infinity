@@ -87,7 +87,19 @@ function initSocket(url) {
 
     socket.on("player_died", (data) => {
         const p = remotePlayers.get(data.id);
-        if (p) p.isAlive = false;
+        if (p) {
+            p.isAlive = false;
+            // Check if we might have killed them (were we attacking them?)
+            if (pvpHitCount[data.id] > 0) {
+                // Report PvP kill to server
+                const auth = globalThis.AuthUI;
+                socket.emit("pvp_kill", {
+                    victimId: data.id,
+                    username: auth?.getUsername() || ""
+                });
+                pvpHitCount[data.id] = 0;
+            }
+        }
     });
 
     socket.on("take_damage", (data) => {
@@ -124,6 +136,39 @@ function initSocket(url) {
                     setTimeout(() => { try { if (t?.runtime) t.destroy(); } catch (e) {} }, 900);
                 }
             } catch (e) {}
+        }
+    });
+
+    // PvP kill reward — 5% chance for gear, 5% chance for stones
+    socket.on("pvp_kill_reward", (data) => {
+        console.log("[Network] PvP kill reward!");
+        const PG = globalThis.PvPGearSystem;
+        if (!PG) return;
+
+        // 5% chance: random PvP gear drop
+        if (Math.random() < 0.05) {
+            const allGears = Object.keys(PG.getAllGearDefs());
+            const SM = globalThis.SaveManager;
+            if (SM) {
+                const saveData = SM.getSaveData();
+                PG.initGearData(saveData);
+                // Pick a random gear the player doesn't own
+                const unowned = allGears.filter(id => !saveData.pvpGear[id]);
+                if (unowned.length > 0) {
+                    const gearId = unowned[Math.floor(Math.random() * unowned.length)];
+                    const def = PG.getGearDef(gearId);
+                    saveData.pvpGear[gearId] = { level: 0 };
+                    SM.saveGame();
+                    showDropToast("⚔️ " + def.name + " dropped!", "#e67e22");
+                }
+            }
+        }
+
+        // 5% chance: enhance stones (2~5)
+        if (Math.random() < 0.05) {
+            const count = 2 + Math.floor(Math.random() * 4);
+            PG.addEnhanceStones(count);
+            showDropToast("💎 +" + count + " Enhance Stones!", "#4fc3f7");
         }
     });
 
@@ -518,6 +563,19 @@ function showNetworkToast(msg) {
     d.textContent = msg;
     document.body.appendChild(d);
     setTimeout(() => d.remove(), 2500);
+}
+
+// Drop toast notification (for PvP/boss rewards)
+function showDropToast(msg, color) {
+    const d = document.createElement("div");
+    d.style.cssText = `position:fixed;top:60px;left:50%;transform:translateX(-50%);
+        background:rgba(0,0,0,0.9);color:${color || '#fff'};padding:10px 20px;border-radius:10px;
+        font-size:14px;font-weight:bold;z-index:100002;pointer-events:none;
+        border:1px solid ${color || '#fff'};
+        animation:pi-slide 0.3s ease-out;`;
+    d.textContent = msg;
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 3000);
 }
 
 // Online count display

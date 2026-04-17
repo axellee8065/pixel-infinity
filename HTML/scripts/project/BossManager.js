@@ -523,6 +523,38 @@ function killBoss(boss) {
     SaveManager.addGold(200);
     SaveManager.unlockAchievement("boss_kill");
 
+    // 2% chance: PvP gear drop from boss
+    const PG = globalThis.PvPGearSystem;
+    if (PG && Math.random() < 0.02) {
+        const allGears = Object.keys(PG.getAllGearDefs());
+        const saveData = SaveManager.getSaveData();
+        PG.initGearData(saveData);
+        const unowned = allGears.filter(id => !saveData.pvpGear[id]);
+        if (unowned.length > 0) {
+            const gearId = unowned[Math.floor(Math.random() * unowned.length)];
+            const def = PG.getGearDef(gearId);
+            saveData.pvpGear[gearId] = { level: 0 };
+            SaveManager.saveGame();
+            // Show drop notification
+            const d = document.createElement("div");
+            d.style.cssText = "position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:#e67e22;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:bold;z-index:100002;pointer-events:none;border:1px solid #e67e22;";
+            d.textContent = "⚔️ BOSS DROP: " + def.name + "!";
+            document.body.appendChild(d);
+            setTimeout(() => d.remove(), 4000);
+        }
+    }
+
+    // 2% chance: enhance stones from boss (3~8)
+    if (PG && Math.random() < 0.02) {
+        const count = 3 + Math.floor(Math.random() * 6);
+        PG.addEnhanceStones(count);
+        const d = document.createElement("div");
+        d.style.cssText = "position:fixed;top:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:#4fc3f7;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:bold;z-index:100002;pointer-events:none;border:1px solid #4fc3f7;";
+        d.textContent = "💎 BOSS DROP: +" + count + " Enhance Stones!";
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), 4000);
+    }
+
     // If already in endless mode, just continue
     if (endlessMode) {
         endlessWave++;
