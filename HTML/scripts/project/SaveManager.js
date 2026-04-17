@@ -2,7 +2,15 @@
 // SAVE MANAGER - LocalStorage persistence
 // ============================================
 
-const SAVE_KEY = "VSURVIVORS_SAVE";
+// Per-user save key
+function getSaveKey() {
+    try {
+        const auth = JSON.parse(localStorage.getItem("pi_auth") || "{}");
+        if (auth.username) return "PIXINF_" + auth.username;
+    } catch(e) {}
+    return "PIXINF_default";
+}
+let SAVE_KEY = "PIXINF_default";
 
 // Default save data structure
 const defaultSaveData = {
@@ -51,24 +59,12 @@ const defaultSaveData = {
 // Current save data in memory
 let saveData = null;
 
-// Initialize save system - load or create default, per-user
+// Initialize save system - per-user save key
 export function init() {
-    // Check if current user matches saved user
-    try {
-        const auth = JSON.parse(localStorage.getItem("pi_auth") || "{}");
-        const currentUser = auth.username || null;
-        const savedUser = localStorage.getItem("VSURVIVORS_USER");
-
-        if (currentUser && currentUser !== savedUser) {
-            // Different user — reset save data for fresh start
-            console.log("[SaveManager] New user:", currentUser, "(was:", savedUser, ") — resetting save");
-            localStorage.removeItem(SAVE_KEY);
-            localStorage.setItem("VSURVIVORS_USER", currentUser);
-        }
-    } catch (e) {}
-
+    SAVE_KEY = getSaveKey();
+    console.log("[SaveManager] Save key:", SAVE_KEY);
     loadGame();
-    console.log("[SaveManager] Initialized with data:", saveData);
+    console.log("[SaveManager] Initialized. Gold:", saveData.gold, "Achievements:", (saveData.achievements||[]).length);
 }
 
 // Load game data from LocalStorage

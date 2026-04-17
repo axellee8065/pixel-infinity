@@ -355,36 +355,46 @@ function initLobby(runtime) {
     // Remove old listeners first
     removeAllLayoutListeners();
 
+    // Re-init SaveManager with current user's save key
+    SaveManager.init();
+
     LobbyManager.init(runtime);
 
-    // Init auth and show login if needed
+    // Init auth
     AuthUI.init();
 
-    AuthUI.showAuthPage((username) => {
-        console.log("[MAIN] Logged in as:", username);
+    // Always show lobby UI (MetaUI buttons, chat)
+    function setupLobbyUI() {
+        try {
+            MetaUI.hideLobbyButtons();  // Clear old buttons
+            MetaUI.init();
+            MetaUI.showLobbyButtons();
+            addLeaderboardButton();
+            AuthUI.showChat();
+            console.log("[MAIN] Lobby UI ready");
+        } catch (e) {
+            console.error("[MAIN] MetaUI init failed:", e);
+        }
+    }
 
-        // Show Meta UI lobby buttons
-        setTimeout(() => {
-            try {
-                MetaUI.init();
-                MetaUI.showLobbyButtons();
-                addLeaderboardButton();
-                // Show chat panel on left
-                AuthUI.showChat();
-                console.log("[MAIN] Lobby UI ready");
-            } catch (e) {
-                console.error("[MAIN] MetaUI init failed:", e);
-            }
-        }, 300);
-
-        // Connect to multiplayer server
-        NetworkManager.connect().then(() => {
-            console.log("[MAIN] Connected to multiplayer server");
-            // Setup chat after connection
-            setTimeout(() => AuthUI.showChat(), 500);
-        }).catch(() => {
-            console.log("[MAIN] Offline mode");
+    if (AuthUI.isLoggedIn()) {
+        // Already logged in — setup directly
+        setTimeout(setupLobbyUI, 300);
+    } else {
+        // Show auth page
+        AuthUI.showAuthPage((username) => {
+            console.log("[MAIN] Logged in as:", username);
+            SaveManager.init();  // Re-init with new user key
+            setTimeout(setupLobbyUI, 300);
         });
+    }
+
+    // Connect to multiplayer server
+    NetworkManager.connect().then(() => {
+        console.log("[MAIN] Connected to multiplayer server");
+        setTimeout(() => AuthUI.showChat(), 500);
+    }).catch(() => {
+        console.log("[MAIN] Offline mode");
     });
 
     // Connect to multiplayer server (also try before auth completes)
