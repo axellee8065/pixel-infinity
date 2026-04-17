@@ -51,6 +51,13 @@ const err = document.getElementById('err');
 const uname = document.getElementById('uname');
 const upass = document.getElementById('upass');
 
+// Unregister Service Worker to prevent fetch interception
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (let r of regs) { r.unregister(); }
+    });
+}
+
 // Check if already logged in
 const saved = localStorage.getItem('pi_auth');
 if (saved) {
@@ -62,48 +69,46 @@ if (saved) {
     } catch(e) {}
 }
 
-document.getElementById('btnLogin').onclick = async function() {
-    const n = uname.value.trim(), p = upass.value;
+// XHR-based API call (bypasses Service Worker completely)
+function apiCall(url, body, onSuccess, onError) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        try {
+            var d = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+                onSuccess(d);
+            } else {
+                onError(d.error || 'Request failed');
+            }
+        } catch(e) {
+            onError('Invalid response');
+        }
+    };
+    xhr.onerror = function() { onError('Network error'); };
+    xhr.send(JSON.stringify(body));
+}
+
+function loginSuccess(d) {
+    localStorage.setItem('pi_auth', JSON.stringify({username:d.username, token:d.token}));
+    window.location.href = '/';
+}
+
+document.getElementById('btnLogin').onclick = function() {
+    var n = uname.value.trim(), p = upass.value;
     if (!n || !p) { err.textContent = 'Fill all fields'; return; }
     err.textContent = 'Logging in...';
-    this.classList.add('loading');
-    try {
-        const r = await fetch('/api/login', {
-            method: 'POST', cache: 'no-store',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({username:n, password:p})
-        });
-        const d = await r.json();
-        if (!r.ok) { err.textContent = d.error || 'Login failed'; this.classList.remove('loading'); return; }
-        localStorage.setItem('pi_auth', JSON.stringify({username:d.username, token:d.token}));
-        window.location.href = '/';
-    } catch(e) {
-        err.textContent = 'Connection error: ' + e.message;
-        this.classList.remove('loading');
-    }
+    apiCall('/api/login', {username:n, password:p}, loginSuccess, function(e) { err.textContent = e; });
 };
 
-document.getElementById('btnReg').onclick = async function() {
-    const n = uname.value.trim(), p = upass.value;
+document.getElementById('btnReg').onclick = function() {
+    var n = uname.value.trim(), p = upass.value;
     if (!n || !p) { err.textContent = 'Fill all fields'; return; }
-    if (n.length < 2) { err.textContent = 'Username: 2+ characters'; return; }
-    if (p.length < 4) { err.textContent = 'Password: 4+ characters'; return; }
+    if (n.length < 2) { err.textContent = 'Username: 2+ chars'; return; }
+    if (p.length < 4) { err.textContent = 'Password: 4+ chars'; return; }
     err.textContent = 'Creating account...';
-    this.classList.add('loading');
-    try {
-        const r = await fetch('/api/register', {
-            method: 'POST', cache: 'no-store',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({username:n, password:p})
-        });
-        const d = await r.json();
-        if (!r.ok) { err.textContent = d.error || 'Register failed'; this.classList.remove('loading'); return; }
-        localStorage.setItem('pi_auth', JSON.stringify({username:d.username, token:d.token}));
-        window.location.href = '/';
-    } catch(e) {
-        err.textContent = 'Connection error: ' + e.message;
-        this.classList.remove('loading');
-    }
+    apiCall('/api/register', {username:n, password:p}, loginSuccess, function(e) { err.textContent = e; });
 };
 
 document.getElementById('btnGuest').onclick = function() {
