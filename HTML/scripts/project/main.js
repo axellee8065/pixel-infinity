@@ -371,7 +371,7 @@ function initLobby(runtime) {
             MetaUI.hideLobbyButtons();  // Clear old buttons
             MetaUI.init();
             MetaUI.showLobbyButtons();
-            addLeaderboardButton();
+            // Leaderboard button now in MetaUI.showLobbyButtons()
             AuthUI.showChat(); AuthUI.showStats();
             console.log("[MAIN] Lobby UI ready");
         } catch (e) {
@@ -607,22 +607,7 @@ function initGame(runtime) {
 }
 
 // Tutorial overlay for first play
-function addLeaderboardButton() {
-    const bar = document.getElementById("pi-buttons");
-    if (!bar) return;
-    // Prevent duplicate
-    if (document.getElementById("pi-lb-btn")) return;
-    const isKo = i18n.getLanguage() === "ko";
-    const btn = document.createElement("button");
-    btn.id = "pi-lb-btn";
-    btn.textContent = isKo ? "🏅 리더보드" : "🏅 Ranking";
-    btn.style.cssText = "background:rgba(243,156,18,0.9);";
-    btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        NetworkManager.showLeaderboard();
-    });
-    bar.appendChild(btn);
-}
+// addLeaderboardButton removed — now integrated in MetaUI.showLobbyButtons()
 
 function showTutorialOverlay(runtime) {
     GameState.state.isPaused = true;

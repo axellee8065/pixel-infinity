@@ -103,6 +103,7 @@ export function showLobbyButtons() {
             if (gearBtn) gearBtn.textContent = "⚔️ " + (nl === "ko" ? "PvP 장비/강화" : "PvP Gear/Enhance");
             if (achBtn) achBtn.textContent = "🏆 " + (nl === "ko" ? "업적" : "Achieve");
             if (dailyBtn) dailyBtn.textContent = "🎁 " + (nl === "ko" ? "일일보상" : "Daily");
+            if (lbBtn) lbBtn.textContent = "🏅 " + (nl === "ko" ? "리더보드" : "Ranking");
         } catch (err) { console.error("[MetaUI] Lang error:", err); }
     });
 
@@ -126,6 +127,11 @@ export function showLobbyButtons() {
     try {
         if (SM()?.canClaimDaily()) dailyBtn.classList.add("pi-glow");
     } catch (e) {}
+
+    // Leaderboard button
+    const lbBtn = mkBtn("🏅", "리더보드", "Ranking", "rgba(243,156,18,0.9)", () => {
+        try { globalThis.NetworkManager?.showLeaderboard(); } catch (err) { console.error("[MetaUI] LB error:", err); }
+    });
 
     document.body.appendChild(buttonsEl);
     console.log("[MetaUI] Lobby buttons created");
