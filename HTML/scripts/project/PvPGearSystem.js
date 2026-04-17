@@ -10,49 +10,49 @@ export const PVP_GEARS = {
         id: "thorn_armor", name: "Thorn Armor",
         desc: "Reflect 10% damage back to attacker",
         effect: "reflect", baseValue: 10, perLevel: 2,
-        icon: "🗡️", unlockCost: 200
+        icon: "/images/pvpgear/thorn_armor.png", unlockCost: 200
     },
     pvp_shield: {
         id: "pvp_shield", name: "PvP Shield",
         desc: "Reduce player damage taken by 15%",
         effect: "pvpDefense", baseValue: 15, perLevel: 3,
-        icon: "🛡️", unlockCost: 300
+        icon: "/images/pvpgear/pvp_shield.png", unlockCost: 300
     },
     dash_boots: {
         id: "dash_boots", name: "Dash Boots",
         desc: "Move 12% faster in PvP zones",
         effect: "pvpSpeed", baseValue: 12, perLevel: 2,
-        icon: "💨", unlockCost: 250
+        icon: "/images/pvpgear/dash_boots.png", unlockCost: 250
     },
     hunters_mark: {
         id: "hunters_mark", name: "Hunter's Mark",
         desc: "Deal 8% more damage to players",
         effect: "pvpDamage", baseValue: 8, perLevel: 2,
-        icon: "🎯", unlockCost: 350
+        icon: "/images/pvpgear/hunters_mark.png", unlockCost: 350
     },
     assassin_blade: {
         id: "assassin_blade", name: "Assassin Blade",
         desc: "First PvP hit deals 50% bonus damage",
         effect: "firstStrike", baseValue: 50, perLevel: 10,
-        icon: "💀", unlockCost: 500
+        icon: "/images/pvpgear/assassin_blade.png", unlockCost: 500
     },
     vampiric_touch: {
         id: "vampiric_touch", name: "Vampiric Touch",
         desc: "Heal 20% HP on PvP kill",
         effect: "pvpLifesteal", baseValue: 20, perLevel: 4,
-        icon: "❤️", unlockCost: 450
+        icon: "/images/pvpgear/vampiric_touch.png", unlockCost: 450
     },
     burn_aura: {
         id: "burn_aura", name: "Burn Aura",
         desc: "Nearby enemies take 2 DPS",
         effect: "pvpBurnAura", baseValue: 2, perLevel: 1,
-        icon: "🔥", unlockCost: 400
+        icon: "/images/pvpgear/burn_aura.png", unlockCost: 400
     },
     stun_strike: {
         id: "stun_strike", name: "Stun Strike",
         desc: "Every 5th hit stuns for 0.3s",
-        effect: "pvpStun", baseValue: 5, perLevel: -0.5,  // hits needed decreases
-        icon: "⚡", unlockCost: 600
+        effect: "pvpStun", baseValue: 5, perLevel: -0.5,
+        icon: "/images/pvpgear/stun_strike.png", unlockCost: 600
     }
 };
 

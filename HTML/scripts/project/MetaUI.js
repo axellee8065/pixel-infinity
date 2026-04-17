@@ -155,8 +155,8 @@ export function showPvPGearShop() {
 
     // Stone count
     const stoneDiv = document.createElement("div");
-    stoneDiv.style.cssText = "text-align:center;margin-bottom:10px;color:#4fc3f7;font-size:13px;";
-    stoneDiv.textContent = "💎 Enhance Stones: " + stones;
+    stoneDiv.style.cssText = "text-align:center;margin-bottom:10px;color:#4fc3f7;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;";
+    stoneDiv.innerHTML = `<img src="/images/pvpgear/enhance_stone.png" style="width:20px;height:20px"> Enhance Stones: <b>${stones}</b>`;
     p.appendChild(stoneDiv);
 
     const allGears = PG.getAllGearDefs();
@@ -174,9 +174,12 @@ export function showPvPGearShop() {
         const levelText = owned ? (level > 0 ? " +" + level : " +0") : "";
         const equippedBadge = equipped ? " <span style='color:#2ecc71;font-size:10px'>EQUIPPED</span>" : "";
 
-        row.innerHTML = `<div style="flex:1">
-            <div><b style="color:${nameColor}">${def.icon} ${def.name}${levelText}</b>${equippedBadge}</div>
-            <div style="font-size:11px;color:#aaa">${def.desc} (${effectVal}%)</div>
+        row.innerHTML = `<div style="display:flex;align-items:center;gap:8px;flex:1">
+            <img src="${def.icon}" style="width:40px;height:40px;${owned?'':'opacity:0.4;filter:grayscale(1)'}">
+            <div>
+                <div><b style="color:${nameColor}">${def.name}${levelText}</b>${equippedBadge}</div>
+                <div style="font-size:11px;color:#aaa">${def.desc} (${effectVal}%)</div>
+            </div>
         </div>`;
 
         const btnDiv = document.createElement("div");
@@ -266,7 +269,7 @@ export function showPvPGearShop() {
     // Gold display
     const goldDiv = document.createElement("div");
     goldDiv.className = "pi-gold";
-    goldDiv.textContent = "Gold: " + gold + "G | 💎 Stones: " + stones;
+    goldDiv.innerHTML = `Gold: ${gold}G | <img src="/images/pvpgear/enhance_stone.png" style="width:14px;height:14px;vertical-align:middle"> ${stones}`;
     p.appendChild(goldDiv);
 }
 
