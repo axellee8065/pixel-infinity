@@ -213,11 +213,13 @@ function loadMyStats() {
     const username = getUsername();
     if (!username) return;
 
-    // Load from SaveManager (local)
+    // All stats from localStorage (survives server restarts)
     const SM = globalThis.SaveManager;
     const saveData = SM ? SM.getSaveData() : {};
 
     const totalKills = saveData.totalKills || 0;
+    const totalGames = saveData.totalGames || 0;
+    const pvpKills = saveData.pvpKills || 0;
     const totalTime = saveData.totalPlayTime || 0;
     const mins = Math.floor(totalTime / 60);
     const hrs = Math.floor(mins / 60);
@@ -227,30 +229,31 @@ function loadMyStats() {
     if (!body) return;
 
     body.innerHTML = `
-        <div class="pis-row"><span>🎮 Total Games</span><span class="pis-val" id="pis-games">-</span></div>
+        <div class="pis-row"><span>🎮 Total Games</span><span class="pis-val">${totalGames}</span></div>
         <div class="pis-row"><span>⏱ Play Time</span><span class="pis-val">${hrs > 0 ? hrs+"h "+mins%60+"m" : mins+"m"}</span></div>
         <div class="pis-row"><span>💀 Monsters Killed</span><span class="pis-val">${totalKills.toLocaleString()}</span></div>
-        <div class="pis-row"><span>⚔️ PvP Kills</span><span class="pis-val" id="pis-pvp">-</span></div>
+        <div class="pis-row"><span>⚔️ PvP Kills</span><span class="pis-val">${pvpKills}</span></div>
         <div class="pis-row"><span>🏆 Best Kills/Run</span><span class="pis-val">${highScore}</span></div>
     `;
 
-    // Also fetch server stats (has pvpKills and totalGames)
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/api/stats/" + encodeURIComponent(username), true);
-    xhr.onload = function() {
-        try {
-            var d = JSON.parse(xhr.responseText);
-            var s = d.stats || {};
-            var gamesEl = document.getElementById("pis-games");
-            var pvpEl = document.getElementById("pis-pvp");
-            if (gamesEl) gamesEl.textContent = s.totalGames || 0;
-            if (pvpEl) pvpEl.textContent = s.pvpKills || 0;
+    // Register my score to server for rankings (so rankings survive restarts via re-registration)
+    registerToServer(username, totalKills, totalGames, pvpKills, highScore, totalTime);
 
-            // Show rank
-            loadMyRank(username);
-        } catch(e) {}
-    };
-    xhr.send();
+    // Show rank
+    loadMyRank(username);
+}
+
+function registerToServer(username, kills, games, pvpKills, bestKills, time) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/leaderboard", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(JSON.stringify({
+        name: username,
+        kills: kills,
+        level: 0,
+        time: time,
+        heroId: "archer"
+    }));
 }
 
 function loadMyRank(username) {

@@ -274,6 +274,10 @@ export function gameOver() {
             });
             SaveMgr.addKills(state.killCount);
             SaveMgr.addPlayTime(Math.floor(state.gameTime));
+            // Increment total games
+            const sd = SaveMgr.getSaveData();
+            sd.totalGames = (sd.totalGames || 0) + 1;
+            SaveMgr.saveGame();
             SaveMgr.updateHighScore(state.killCount);
 
             // Check achievements

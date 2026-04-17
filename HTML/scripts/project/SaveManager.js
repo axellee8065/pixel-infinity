@@ -22,6 +22,8 @@ const defaultSaveData = {
     currentLevel: 1,
     highScore: 0,
     totalKills: 0,
+    totalGames: 0,
+    pvpKills: 0,
     totalPlayTime: 0,
     // Weapons are NOT saved - they reset each run based on hero selection
 
