@@ -122,25 +122,73 @@ export function showChat() {
     chatEl = document.createElement("div");
     chatEl.id = "pic";
     chatEl.innerHTML = `<style>
-#pic{position:fixed;top:10px;left:10px;width:230px;height:330px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.15);border-radius:12px;display:flex;flex-direction:column;z-index:99998;font-family:sans-serif;overflow:hidden}
-@media(max-width:767px){#pic{width:160px;height:200px;top:4px;left:4px;font-size:10px}
-.pic-h{font-size:11px;padding:5px 8px}
-.pic-m{font-size:10px;padding:4px 6px}
-.pic-r{padding:4px}
-.pic-i{font-size:10px;padding:5px 6px}
-.pic-s{font-size:10px;padding:5px 8px}}
-.pic-h{color:#f1c40f;font-size:13px;font-weight:700;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
-.pic-m{flex:1;overflow-y:auto;padding:6px 10px;font-size:12px;color:#ccc}
-.pic-m div{margin-bottom:4px;word-break:break-word;line-height:1.4}
+#pic{position:fixed;top:10px;left:10px;width:220px;height:300px;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.15);border-radius:12px;display:flex;flex-direction:column;z-index:99998;font-family:sans-serif;overflow:hidden}
+@media(max-width:767px){#pic{width:44vw;max-width:180px;height:45vh;max-height:280px;top:4px;left:4px}}
+.ptabs{display:flex;border-bottom:1px solid rgba(255,255,255,.15)}
+.ptab{flex:1;padding:7px 0;text-align:center;font-size:11px;font-weight:700;color:#888;cursor:pointer;border:0;background:0 0}
+.ptab.active{color:#f1c40f;border-bottom:2px solid #f1c40f}
+.ptab:active{opacity:.7}
+.ppane{flex:1;display:none;flex-direction:column;overflow:hidden}
+.ppane.active{display:flex}
+.pic-m{flex:1;overflow-y:auto;padding:5px 8px;font-size:11px;color:#ccc}
+.pic-m div{margin-bottom:3px;word-break:break-word;line-height:1.3}
 .pic-m b{color:#f1c40f}
 .pic-m .me b{color:#3498db}
-.pic-t{color:#555;font-size:10px}
-.pic-r{display:flex;padding:6px;gap:4px;border-top:1px solid rgba(255,255,255,.1)}
-.pic-i{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:7px 8px;color:#fff;font-size:12px;outline:0}
+.pic-t{color:#555;font-size:9px}
+.pic-r{display:flex;padding:4px;gap:3px;border-top:1px solid rgba(255,255,255,.1)}
+.pic-i{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:5px 6px;color:#fff;font-size:11px;outline:0}
 .pic-i:focus{border-color:#3498db}
-.pic-s{background:#3498db;color:#fff;border:0;border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer;font-weight:700}
-</style><div class="pic-h">💬 Chat</div><div class="pic-m" id="pic-m"></div><div class="pic-r"><input class="pic-i" id="pic-i" placeholder="Type message..." maxlength="200" onkeydown="if(event.key==='Enter'){event.stopPropagation();window._piChatSend()}"><button class="pic-s" onclick="window._piChatSend()">Send</button></div>`;
+.pic-s{background:#3498db;color:#fff;border:0;border-radius:5px;padding:5px 8px;font-size:10px;cursor:pointer;font-weight:700}
+.pst-body{padding:6px 8px;font-size:11px;color:#ccc;overflow-y:auto;flex:1}
+.pst-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.pst-row:last-child{border:0}
+.pst-val{color:#fff;font-weight:700}
+.pst-rank{text-align:center;padding:5px;font-size:11px;border-top:1px solid rgba(255,255,255,.1)}
+.pst-rank b{color:#f1c40f}
+.pst-btn{display:block;width:calc(100% - 12px);margin:4px 6px;padding:6px;background:#3498db;color:#fff;border:0;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;text-align:center}
+#pst-rankings{max-height:120px;overflow-y:auto;padding:2px 8px;font-size:10px}
+.pst-rk-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.pst-rk-row .medal{width:22px;font-weight:700}
+.pst-rk-row .name{flex:1}
+.pst-rk-row .score{color:#f1c40f;font-weight:700;width:45px;text-align:right}
+</style>
+<div class="ptabs">
+    <button class="ptab active" onclick="window._piSwitchTab('chat')">💬 Chat</button>
+    <button class="ptab" onclick="window._piSwitchTab('stats')">📊 Stats</button>
+</div>
+<div class="ppane active" id="pp-chat">
+    <div class="pic-m" id="pic-m"></div>
+    <div class="pic-r"><input class="pic-i" id="pic-i" placeholder="Type..." maxlength="200" onkeydown="if(event.key==='Enter'){event.stopPropagation();window._piChatSend()}"><button class="pic-s" onclick="window._piChatSend()">Send</button></div>
+</div>
+<div class="ppane" id="pp-stats">
+    <div class="pst-body" id="pst-body">Loading...</div>
+    <div class="pst-rank" id="pst-rank"></div>
+    <button class="pst-btn" onclick="window._piToggleRank()">🏅 Rankings</button>
+    <div id="pst-rankings" style="display:none"></div>
+</div>`;
     document.body.appendChild(chatEl);
+
+    // Tab switching
+    window._piSwitchTab = function(tab) {
+        document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.ppane').forEach(p => p.classList.remove('active'));
+        if (tab === 'chat') {
+            document.querySelector('.ptab:first-child').classList.add('active');
+            document.getElementById('pp-chat').classList.add('active');
+        } else {
+            document.querySelector('.ptab:last-child').classList.add('active');
+            document.getElementById('pp-stats').classList.add('active');
+            loadMyStats();
+        }
+    };
+
+    window._piToggleRank = function() {
+        const el = document.getElementById("pst-rankings");
+        if (!el) return;
+        el.style.display = el.style.display === "none" ? "block" : "none";
+        if (el.style.display === "block") loadRankings();
+    };
+
     setupChatSocket();
 }
 
@@ -174,6 +222,11 @@ export function hideChat() { if(chatEl){chatEl.remove();chatEl=null;} hideStats(
 let statsEl = null;
 
 export function showStats() {
+    // Stats now integrated into chat panel tabs — no separate panel
+    return;
+}
+
+function _showStatsLegacy() {
     if (statsEl) return;
     statsEl = document.createElement("div");
     statsEl.id = "pi-stats";
@@ -185,7 +238,7 @@ export function showStats() {
 .pis-row{padding:2px 0}
 .pis-rank{padding:4px;font-size:10px}
 .pis-btn{font-size:10px;padding:5px;margin:4px 6px}
-.pis-rk-row{font-size:9px}}
+.pst-rk-row{font-size:9px}}
 .pis-h{color:#f1c40f;font-size:13px;font-weight:700;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
 .pis-body{padding:8px 12px}
 .pis-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -196,10 +249,10 @@ export function showStats() {
 .pis-btn{display:block;width:calc(100% - 16px);margin:6px 8px 8px;padding:8px;background:#3498db;color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
 .pis-btn:active{background:#2980b9}
 #pis-rankings{max-height:180px;overflow-y:auto;padding:4px 12px}
-.pis-rk-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,.05)}
-.pis-rk-row .medal{width:24px;font-weight:700}
-.pis-rk-row .name{flex:1}
-.pis-rk-row .score{color:#f1c40f;font-weight:700;width:50px;text-align:right}
+.pst-rk-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,.05)}
+.pst-rk-row .medal{width:24px;font-weight:700}
+.pst-rk-row .name{flex:1}
+.pst-rk-row .score{color:#f1c40f;font-weight:700;width:50px;text-align:right}
 </style>
 <div class="pis-h">📊 My Stats</div>
 <div class="pis-body" id="pis-body">Loading...</div>
@@ -209,7 +262,7 @@ export function showStats() {
     document.body.appendChild(statsEl);
 
     window._piToggleRank = function() {
-        const el = document.getElementById("pis-rankings");
+        const el = document.getElementById("pst-rankings");
         if (!el) return;
         if (el.style.display === "none") {
             el.style.display = "block";
@@ -238,15 +291,15 @@ function loadMyStats() {
     const hrs = Math.floor(mins / 60);
     const highScore = saveData.highScore || 0;
 
-    const body = document.getElementById("pis-body");
+    const body = document.getElementById("pst-body");
     if (!body) return;
 
     body.innerHTML = `
-        <div class="pis-row"><span>🎮 Total Games</span><span class="pis-val">${totalGames}</span></div>
-        <div class="pis-row"><span>⏱ Play Time</span><span class="pis-val">${hrs > 0 ? hrs+"h "+mins%60+"m" : mins+"m"}</span></div>
-        <div class="pis-row"><span>💀 Monsters Killed</span><span class="pis-val">${totalKills.toLocaleString()}</span></div>
-        <div class="pis-row"><span>⚔️ PvP Kills</span><span class="pis-val">${pvpKills}</span></div>
-        <div class="pis-row"><span>🏆 Best Kills/Run</span><span class="pis-val">${highScore}</span></div>
+        <div class="pst-row"><span>🎮 Games</span><span class="pst-val">${totalGames}</span></div>
+        <div class="pst-row"><span>⏱ Time</span><span class="pst-val">${hrs > 0 ? hrs+"h "+mins%60+"m" : mins+"m"}</span></div>
+        <div class="pst-row"><span>💀 Kills</span><span class="pst-val">${totalKills.toLocaleString()}</span></div>
+        <div class="pst-row"><span>⚔️ PvP</span><span class="pst-val">${pvpKills}</span></div>
+        <div class="pst-row"><span>🏆 Best</span><span class="pst-val">${highScore}</span></div>
     `;
 
     // Register my score to server for rankings (so rankings survive restarts via re-registration)
@@ -282,7 +335,7 @@ function loadMyRank(username) {
                     myRank = i + 1; break;
                 }
             }
-            var el = document.getElementById("pis-rank");
+            var el = document.getElementById("pst-rank");
             if (el) {
                 if (myRank > 0) {
                     var medal = myRank === 1 ? "🥇" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "#" + myRank;
@@ -303,7 +356,7 @@ function loadRankings() {
         try {
             var d = JSON.parse(xhr.responseText);
             var rankings = d.rankings || [];
-            var el = document.getElementById("pis-rankings");
+            var el = document.getElementById("pst-rankings");
             if (!el) return;
             if (!rankings.length) { el.innerHTML = "<div style='text-align:center;color:#666;padding:12px'>No players yet</div>"; return; }
             var html = "";
@@ -311,7 +364,7 @@ function loadRankings() {
                 var r = rankings[i];
                 var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#"+(i+1);
                 var isMe = r.username.toLowerCase() === (getUsername()||"").toLowerCase();
-                html += '<div class="pis-rk-row" style="' + (isMe?"background:rgba(52,152,219,.15);border-radius:4px":"") + '">';
+                html += '<div class="pst-rk-row" style="' + (isMe?"background:rgba(52,152,219,.15);border-radius:4px":"") + '">';
                 html += '<span class="medal">' + medal + '</span>';
                 html += '<span class="name">' + esc(r.username) + '</span>';
                 html += '<span class="score">' + (r.totalKills||0) + 'K</span>';
