@@ -21,18 +21,33 @@ function refreshGold() {
 // ============================================
 // STYLES
 // ============================================
+function isMobile() { return window.innerWidth < 768; }
+
 function addStyles() {
     if (styleAdded) return;
     styleAdded = true;
     const s = document.createElement("style");
     s.textContent = `
         #pi-buttons { position:fixed; top:8px; right:8px; display:flex; flex-direction:column;
-            gap:6px; z-index:99999; }
+            gap:4px; z-index:99999; }
         #pi-buttons button { display:block; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.3);
             color:#fff; font-size:13px; font-weight:bold; cursor:pointer;
             text-shadow:1px 1px 2px #000; -webkit-tap-highlight-color:transparent;
             touch-action:manipulation; }
         #pi-buttons button:active { transform:scale(0.93); }
+
+        /* Mobile: compact buttons */
+        @media(max-width:767px) {
+            #pi-buttons { gap:2px; top:4px; right:4px; }
+            #pi-buttons button { padding:6px 10px; font-size:11px; border-radius:8px;
+                border-width:1px; }
+            #pi-menu-toggle { display:block !important; }
+            #pi-buttons.collapsed button:not(#pi-menu-toggle) { display:none !important; }
+            #pi-buttons.expanded button { display:block !important; }
+        }
+        @media(min-width:768px) {
+            #pi-menu-toggle { display:none !important; }
+        }
         .pi-backdrop { position:fixed; top:0; left:0; width:100%; height:100%;
             background:rgba(0,0,0,0.7); z-index:100000; }
         .pi-panel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
@@ -40,6 +55,14 @@ function addStyles() {
             color:#fff; width:85vw; max-width:360px; max-height:75vh; overflow-y:auto;
             z-index:100001; font-family:sans-serif; box-shadow:0 8px 30px rgba(0,0,0,0.7); }
         .pi-panel h2 { text-align:center; color:#f1c40f; margin:0 0 14px 0; font-size:18px; }
+        @media(max-width:767px) {
+            .pi-panel { width:92vw; max-width:none; padding:14px; max-height:85vh; font-size:12px; }
+            .pi-panel h2 { font-size:16px; margin-bottom:10px; }
+            .pi-row { padding:6px 2px; flex-wrap:wrap; }
+            .pi-buy { padding:5px 8px; font-size:11px; }
+            .pi-close { font-size:20px; }
+            .pi-gold { font-size:12px; }
+        }
         .pi-close { position:absolute; top:6px; right:10px; background:none; border:none;
             color:#888; font-size:22px; cursor:pointer; }
         .pi-row { display:flex; justify-content:space-between; align-items:center;
@@ -80,6 +103,22 @@ export function showLobbyButtons() {
         buttonsEl.appendChild(b);
         return b;
     };
+
+    // Mobile: hamburger toggle
+    const toggleBtn = document.createElement("button");
+    toggleBtn.id = "pi-menu-toggle";
+    toggleBtn.textContent = "☰";
+    toggleBtn.style.cssText = "background:rgba(0,0,0,0.7);font-size:18px;padding:8px 12px;";
+    toggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        buttonsEl.classList.toggle("collapsed");
+        buttonsEl.classList.toggle("expanded");
+        toggleBtn.textContent = buttonsEl.classList.contains("collapsed") ? "☰" : "✕";
+    });
+    buttonsEl.appendChild(toggleBtn);
+
+    // Start collapsed on mobile
+    if (isMobile()) buttonsEl.classList.add("collapsed");
 
     // User profile + Logout button
     const auth = globalThis.AuthUI;

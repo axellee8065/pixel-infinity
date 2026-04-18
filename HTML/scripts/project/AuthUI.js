@@ -123,6 +123,12 @@ export function showChat() {
     chatEl.id = "pic";
     chatEl.innerHTML = `<style>
 #pic{position:fixed;top:10px;left:10px;width:230px;height:330px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.15);border-radius:12px;display:flex;flex-direction:column;z-index:99998;font-family:sans-serif;overflow:hidden}
+@media(max-width:767px){#pic{width:160px;height:200px;top:4px;left:4px;font-size:10px}
+.pic-h{font-size:11px;padding:5px 8px}
+.pic-m{font-size:10px;padding:4px 6px}
+.pic-r{padding:4px}
+.pic-i{font-size:10px;padding:5px 6px}
+.pic-s{font-size:10px;padding:5px 8px}}
 .pic-h{color:#f1c40f;font-size:13px;font-weight:700;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
 .pic-m{flex:1;overflow-y:auto;padding:6px 10px;font-size:12px;color:#ccc}
 .pic-m div{margin-bottom:4px;word-break:break-word;line-height:1.4}
@@ -173,6 +179,13 @@ export function showStats() {
     statsEl.id = "pi-stats";
     statsEl.innerHTML = `<style>
 #pi-stats{position:fixed;top:350px;left:10px;width:230px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.15);border-radius:12px;z-index:99997;font-family:sans-serif;overflow:hidden;color:#ccc;font-size:12px}
+@media(max-width:767px){#pi-stats{top:210px;left:4px;width:160px;font-size:10px}
+.pis-h{font-size:11px;padding:5px 8px}
+.pis-body{padding:4px 8px}
+.pis-row{padding:2px 0}
+.pis-rank{padding:4px;font-size:10px}
+.pis-btn{font-size:10px;padding:5px;margin:4px 6px}
+.pis-rk-row{font-size:9px}}
 .pis-h{color:#f1c40f;font-size:13px;font-weight:700;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
 .pis-body{padding:8px 12px}
 .pis-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
